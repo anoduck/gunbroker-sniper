@@ -80,6 +80,12 @@ variables = {}  # variables are stored here.
 threads = []  # bid threads
 log = None
 
+# ____   ____               .__        ___.    .__
+# \   \ /   /_____  _______ |__|_____  \_ |__  |  |    ____    ______
+#  \   Y   / \__  \ \_  __ \|  |\__  \  | __ \ |  |  _/ __ \  /  ___/
+#   \     /   / __ \_|  | \/|  | / __ \_| \_\ \|  |__\  ___/  \___ \
+#    \___/   (____  /|__|   |__|(____  /|___  /|____/ \___  >/____  >
+#                 \/                 \/     \/            \/      \/
 # setup config variables
 def setup_vars():
     reg_variable("USER", "User for gunbroker")
@@ -466,7 +472,7 @@ def get_login_credentials():
     """ Return user and password, die if these parameters are unset """
     user, password = get_variable("USER"), get_variable("PASSWORD")
     if not user:
-        raise Exception("USER not set")
+        raise Exception("USER not set")ebay
     if not password:
         raise Exception("PASSWORD not set")
     return user, password
