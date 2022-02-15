@@ -28,12 +28,10 @@ import math
 import time
 import shlex
 import locale
-import atexit
 import requests
 import threading
 import traceback
 import argparse
-import configparser
 
 from io import StringIO
 from lxml import etree
@@ -75,8 +73,8 @@ if import_errors:
     sys.exit(1)
 
 ## Program Meta 
-program = "pyEbaySniper"
-version = "0.1"
+program = "gunbroker-sniper"
+version = "0.01a"
 commands = {}  # available shell commands.
 variables = {}  # variables are stored here.
 threads = []  # bid threads
@@ -84,8 +82,8 @@ log = None
 
 # setup config variables
 def setup_vars():
-    reg_variable("USER", "User for ebay")
-    reg_variable("PASSWORD", "Password for ebay")
+    reg_variable("USER", "User for gunbroker")
+    reg_variable("PASSWORD", "Password for gunbroker")
     reg_variable(
         "DRIVER",
         "Driver to use with selenium",
@@ -102,9 +100,9 @@ def setup_vars():
         value=3,
         type=int,
     )
-    reg_variable("HISTORY", "History file", os.path.expanduser("~/.ebay_hist"))
+    reg_variable("HISTORY", "History file", os.path.expanduser("~/.gunbroker_hist"))
     # reg_variable('COOKIE_FILE', 'File for cookies. (Optional)',
-    #    os.path.expandvars('/tmp/ebay-$USER-cookie')
+    #    os.path.expandvars('/tmp/gunbroker-$USER-cookie')
     # )
 
     reg_variable(
@@ -112,13 +110,13 @@ def setup_vars():
     )
     reg_variable(
         "LOGIN_URL",
-        "URL for ebay login page",
-        "https://signin.ebay.de/ws/eBayISAPI.dll?SignIn",
+        "URL for gunbroker login page",
+        "https://signin.gunbroker.com/ws/gunbrokerISAPI.dll?SignIn",
     )
     reg_variable(
         "LOGIN_URL_RE",
         "RegEx to check if URL is a login page",
-        "https://signin.ebay.de",
+        "https://signin.gunbroker.com",
     )
     reg_variable(
         "LOGIN_FIELD_PASS_RE",
@@ -135,8 +133,8 @@ def print_infos():
 
     if not get_variable("LOCALE"):
         print("LOCALE is unset")
-        print("\tYou have to explicitly set the ebay locale.")
-        print("\tUse 'set LOCALE <ebay locale>' to the locale of your ebay site.")
+        print("\tYou have to explicitly set the gunbroker locale.")
+        print("\tUse 'set LOCALE <gunbroker locale>' to the locale of your gunbroker site.")
         print(
             "\tKeep in mind that all input inside this shell will also be interpreted according to that locale."
         )
@@ -153,19 +151,19 @@ def print_infos():
 ## Main function
 def main():
     argp = argparse.ArgumentParser(
-        prog=program, description="Automated bidding on eBay articles"
+        prog=program, description="Automated bidding on gunbroker articles"
     )
     argp.add_argument(
         "--rc",
         metavar="FILE",
         help="Specify config file to read on startup",
-        default=os.path.join(os.path.expanduser("~"), ".ebayrc"),
+        default=os.path.join(os.path.expanduser("~"), ".gunbrokerrc"),
     )
     argp.add_argument(
         "--log",
         metavar="FILE",
         help="Specify log file",
-        default=os.path.expanduser("~/.ebaylog"),
+        default=os.path.expanduser("~/.gunbrokerlog"),
     )
     argp.add_argument(
         "file", metavar="FILE", nargs="*", help="Specify script files to execute"
@@ -613,7 +611,7 @@ def shell_source(args):
     ),
 )
 def shell_bid(args):
-    """ Place bid on an eBay article """
+    """ Place bid on an gunbroker article """
     get_login_credentials()  # w/o login information bid will not work, better die NOW
 
     if args.before:
@@ -639,7 +637,7 @@ class BidThread(threading.Timer):
 
         # initialized fields with 'empty' values
         self.bid_datetime = datetime.fromtimestamp(0)
-        self.article_infos = EbayArticleInfoPage(self.url)
+        self.article_infos = gunbrokerArticleInfoPage(self.url)
 
         self.bidded = False
         self.error = None
@@ -675,14 +673,14 @@ class BidThread(threading.Timer):
 
             if self.dry < 2:
                 self.log("Logging in ...")
-                login_page = EbayLoginPage(driver)
+                login_page = gunbrokerLoginPage(driver)
                 user, password = get_login_credentials()
                 try:
                     login_page.login(user, password)
                 except:
                     login_page.login(user, password)  # try again if failed
 
-            article_page = EbayArticleBidPage(driver, self.url)
+            article_page = gunbrokerArticleBidPage(driver, self.url)
 
             self.log(
                 "Entering bid ",
@@ -716,7 +714,7 @@ class BidThread(threading.Timer):
                 pass
                 # if not self.dry:
                 #    time.sleep(5) # TODO: bid on something and analyze output.
-                #    with open('/tmp/ebay-dump', 'a') as dump_fh:
+                #    with open('/tmp/gunbroker-dump', 'a') as dump_fh:
                 #        dump_fh.write('<!-- ')
                 #        dump_fh.write(driver.current_url)
                 #        dump_fh.write("-->\n")
@@ -761,11 +759,11 @@ class BidThread(threading.Timer):
 @reg_command("login-test")
 @argparsed_func("login-test")
 def shell_login(args):
-    """ Try to to log in to eBay """
+    """ Try to to log in to gunbroker """
     user, password = get_login_credentials()
     try:
         driver = get_driver()
-        login_page = EbayLoginPage(driver)
+        login_page = gunbrokerLoginPage(driver)
         login_page.login(user, password)
         print("Success")
     finally:
@@ -773,9 +771,9 @@ def shell_login(args):
 
 
 ##############################################################
-# Ebay Pages
+# gunbroker Pages
 ##############################################################
-class EbayArticleInfoPage:
+class gunbrokerArticleInfoPage:
     def __init__(self, url):
         self.url = url
         self.load()
@@ -818,7 +816,7 @@ class EbayArticleInfoPage:
         )
 
 
-class EbayArticleBidPage:
+class gunbrokerArticleBidPage:
     def __init__(self, driver, url):
         self.driver = driver
         self.url = url
@@ -873,16 +871,16 @@ class EbayArticleBidPage:
         except NoSuchElementException:
             pass
 
-class EbayLoginPage:
+class gunbrokerLoginPage:
     def __init__(self, driver):
         self.driver = driver
 
     def reset(self):
-        """ Opens eBay login page on driver """
+        """ Opens gunbroker login page on driver """
         self.driver.get(get_variable("LOGIN_URL"))
 
     def is_login_page_open(self):
-        """ Checks if eBay login page is open in driver """
+        """ Checks if gunbroker login page is open in driver """
         return re.match(get_variable("LOGIN_URL_RE"), self.driver.current_url, re.I)
 
     def login(self, user, password):
