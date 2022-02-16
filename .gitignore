@@ -2,6 +2,7 @@
 user.cfg
 poetry.lock
 References
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

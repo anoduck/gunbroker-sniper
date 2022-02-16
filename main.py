@@ -60,11 +60,11 @@ scraper = cfscrape.create_scraper()
 harvey = Harvester()
 
 tokens = harvey.intercept_hcaptcha(
-    domain=login_url,
+    domain='gunbroker.com',
     sitekey='6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn'
 )
 
-server_thread = Thread(target=harvester.serve, daemon=True)
+server_thread = Thread(target=harvey.serve, daemon=True)
 server_thread.start()
 
 # -------------------------------------------------------
@@ -76,7 +76,7 @@ if use_selenoid:
         command_executor='http://127.0.0.1:4444/wd/hub',
         desired_capabilities={
             "browserName": "chrome",
-            "browserVersion": "95.0",
+            "browserVersion": "98.0",
             "browserSize": "1920x1080",
             "enableVNC": True,
             "enableVideo": False
@@ -154,13 +154,13 @@ class SetupSnipe(object):
         driver.get(login_url)
         try:
             driver.find_element(By.ID, "Username").send_keys(Keys, username)
-        except NoSuchElementException
+        except NoSuchElementException:
             print("Login element not found")
         driver.find_element(By.ID, "Password").send_keys(Keys, password)
         try:
             harvey.launch_browser()
             tokens.get()
-        except NoSuchElementException
+        except NoSuchElementException:
             print("harvey crashed")
         driver.find_element(By.ID, "btnLogin").click()
         time.sleep(5)
