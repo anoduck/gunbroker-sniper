@@ -1,62 +1,81 @@
 #!/usr/bin/env python
 
 from selenium import webdriver
-from selenium.webdriver import Firefox
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+# from selenium.webdriver.support import expected_conditions as EC
 
 import time
+import logging
+from threading import Thread
 import requests
 import shutil
 import hashlib
 import urllib.parse
 from furl import furl
 from retrying import retry
-# import pytest
 from random import randint
-# import argparse
 import os
-# import wget
-# import platform
-import sys
 import cfscrape
+from harvester import Harvester
 
 # =======================================================
 # Variables
 # =======================================================
 
-# Scrolling window
-# -----------------
-current_scrolls = 0
-old_height = 0
-total_scrolls = 2500
-scroll_time = 20
+username = ""
+password = ""
 
-total_scrolls = int(total_scrolls)
-scroll_time = int(scroll_time)
+#Item ID
+itemID = ""
 
 # Item Url
 item_pattern = "https://www.gunbroker.com/item/"
 
-#login url
+# login url
 login_url = "https://www.gunbroker.com/user/login"
 
+# ---------------------------------------------------
+# logging shit
+# ---------------------------------------------------
+logging.getLogger('harvester').setLevel(logging.CRITICAL)
+
 # ------------------------------------------------------
-# Setup Browser
+# Setup Browser (Whatever this is?)
+# ------------------------------------------------------
 cm_path = "~/bin/cm"
 down_dir = str(os.getcwd())
 
+# -----------------------------------------------------
+# Create cloudflare scraper isinstance
+# -----------------------------------------------------
+scraper = cfscrape.create_scraper()
+
+# ------------------------------------------------------
+# start harvester instance
+# ------------------------------------------------------
+harvey = Harvester()
+
+tokens = harvey.intercept_hcaptcha(
+    domain=login_url,
+    sitekey='6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn'
+)
+
+server_thread = Thread(target=harvester.serve, daemon=True)
+server_thread.start()
+
+# -------------------------------------------------------
+# Setup Selenoid
+# -------------------------------------------------------
 use_selenoid = True
 if use_selenoid:
     driver = webdriver.Remote(
         command_executor='http://127.0.0.1:4444/wd/hub',
         desired_capabilities={
-            "browserName": "firefox",
+            "browserName": "chrome",
             "browserVersion": "95.0",
             "browserSize": "1920x1080",
             "enableVNC": True,
@@ -67,6 +86,10 @@ else:
     driver = webdriver.Firefox(
         # executable_path=ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
         executable_path="/home/vassilios/bin/geckodriver")
+
+# --------------------------------------------------------------
+# Browser and Selenium Options
+# --------------------------------------------------------------
 
 opts = Options()
 opts.add_argument(
@@ -88,6 +111,9 @@ headers = {
 wait = WebDriverWait(driver, 67)
 driver.implicitly_wait(35)
 
+# -------------------------------------------
+# Setup retry
+# -------------------------------------------
 
 def retry_on_timeout(exception):
     """ Return True if exception is Timeout """
@@ -101,3 +127,59 @@ def retry_on_NoSuchElement(exception):
 
 # @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+# =============================================================================
+# Begin
+# -----------------------------------------------------------------------------
+# https://www.gunbroker.com/
+class GunbrokerPage(object):
+    def __init__(self, driver):
+        self.driver = driver
+        self.usernameInput = driver.find_element(By.ID, "Username")
+        self.passwordInput = driver.find_element(By.ID, "Password")
+        self.reCAPTCHAcontainerDiv = driver.find_element(By.ID, "reCAPTCHAcontainer")
+        self.btnLoginButton = driver.find_element(By.ID, "btnLogin")
+
+
+# class SolveCaptcha(object):
+#     def identifyCaptcha(self):
+#         CapCon = driver.find_element(By.ID, "reCAPTCHAcontainer")
+
+@retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+class SetupSnipe(object):
+    def startup(self):
+        cm_command = "cm selenoid start && cm selenoid-ui start"
+        os.system(cm_command)
+        harvey.launch_browser()
+    def login(self):
+        driver.get(login_url)
+        try:
+            driver.find_element(By.ID, "Username").send_keys(Keys, username)
+        except NoSuchElementException
+            print("Login element not found")
+        driver.find_element(By.ID, "Password").send_keys(Keys, password)
+        try:
+            harvey.launch_browser()
+            tokens.get()
+        except NoSuchElementException
+            print("harvey crashed")
+        driver.find_element(By.ID, "btnLogin").click()
+        time.sleep(5)
+        itemUrl = item_pattern + str(itemID)
+        driver.get(itemUrl)
+
+# ----------------------------------------------------
+def browser_close():
+    # os.chdir("../")
+    driver.close()
+    # driver.quit()
+
+
+def __main__():
+    # get_image_with_browser()
+    SetupSnipe()
+    browser_close()
+
+
+# get things rolling
+if __name__ == "__main__":
+    __main__()
