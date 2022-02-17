@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  selenoid:
+    image: "aerokube/selenoid"
+    container_name: "selenoid-box"
+    network_mode: bridge
+    ports:
+      - "4444:4444"
+    volumes:
+      - "$PWD/config/:/etc/selenoid/" # assumed current dir contains browsers.json
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  selenoid-ui:
+    image: "aerokube/selenoid-ui"
+    container_name: "selenoid-view"
+    network_mode: bridge
+    links:
+      - selenoid
+    ports:
+      - "8080:8080"
+    command: ["--selenoid-uri", "http://selenoid-box:4444"]
+

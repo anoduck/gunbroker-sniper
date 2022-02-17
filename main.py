@@ -105,8 +105,7 @@ opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
 opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
 
 # For requests library
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}  # noqa: E501
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}  # noqa: E501
 
 wait = WebDriverWait(driver, 67)
 driver.implicitly_wait(35)
@@ -130,42 +129,25 @@ def retry_on_NoSuchElement(exception):
 # =============================================================================
 # Begin
 # -----------------------------------------------------------------------------
-# https://www.gunbroker.com/
-class GunbrokerPage(object):
-    def __init__(self, driver):
-        self.driver = driver
-        self.usernameInput = driver.find_element(By.ID, "Username")
-        self.passwordInput = driver.find_element(By.ID, "Password")
-        self.reCAPTCHAcontainerDiv = driver.find_element(By.ID, "reCAPTCHAcontainer")
-        self.btnLoginButton = driver.find_element(By.ID, "btnLogin")
-
-
-# class SolveCaptcha(object):
-#     def identifyCaptcha(self):
-#         CapCon = driver.find_element(By.ID, "reCAPTCHAcontainer")
 
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
-class SetupSnipe(object):
-    def startup(self):
-        cm_command = "cm selenoid start && cm selenoid-ui start"
-        os.system(cm_command)
+def login():
+    driver.get(login_url)
+    time.sleep(60)
+    try:
+        driver.find_element(By.ID, "Username").send_keys(Keys, username)
+    except NoSuchElementException:
+        print("Login element not found")
+    driver.find_element(By.ID, "Password").send_keys(Keys, password)
+    try:
         harvey.launch_browser()
-    def login(self):
-        driver.get(login_url)
-        try:
-            driver.find_element(By.ID, "Username").send_keys(Keys, username)
-        except NoSuchElementException:
-            print("Login element not found")
-        driver.find_element(By.ID, "Password").send_keys(Keys, password)
-        try:
-            harvey.launch_browser()
-            tokens.get()
-        except NoSuchElementException:
-            print("harvey crashed")
-        driver.find_element(By.ID, "btnLogin").click()
-        time.sleep(5)
-        itemUrl = item_pattern + str(itemID)
-        driver.get(itemUrl)
+        tokens.get()
+    except NoSuchElementException:
+        print("harvey crashed")
+    driver.find_element(By.ID, "btnLogin").click()
+    time.sleep(5)
+    itemUrl = item_pattern + str(itemID)
+    driver.get(itemUrl)
 
 # ----------------------------------------------------
 def browser_close():
@@ -176,8 +158,8 @@ def browser_close():
 
 def __main__():
     # get_image_with_browser()
-    SetupSnipe()
-    browser_close()
+    login()
+    # browser_close()
 
 
 # get things rolling
