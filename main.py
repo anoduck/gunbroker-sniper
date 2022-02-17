@@ -3,10 +3,8 @@
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.support import expected_conditions as EC
 
 import time
 import logging
@@ -73,22 +71,20 @@ server_thread.start()
 # -------------------------------------------------------
 # Setup Selenoid
 # -------------------------------------------------------
-use_selenoid = True
-if use_selenoid:
-    driver = webdriver.Remote(
-        command_executor='http://127.0.0.1:4444/wd/hub',
-        desired_capabilities={
-            "browserName": "chrome",
-            "browserVersion": "98.0",
-            "browserSize": "1920x1080",
-            "enableVNC": True,
-            "enableVideo": False
-        }
-    )
-else:
-    driver = webdriver.Firefox(
-        # executable_path=ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-        executable_path="$HOME/bin/geckodriver")
+capabilities = {
+    "browserName": "chrome",
+    "browserVersion": "97.0",
+    "selenoid:options": {
+        "enableVNC": True,
+        "enableVideo": False
+        # "sessionTimeout": "20m"
+    }
+}
+
+driver = webdriver.Remote(
+    command_executor="http://127.0.0.1:4444/wd/hub",
+    desired_capabilities=capabilities
+)
 
 # --------------------------------------------------------------
 # Browser and Selenium Options

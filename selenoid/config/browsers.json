@@ -1,19 +1,9 @@
 {
   "chrome": {
-    "default": "96.0",
+    "default": "97.0",
     "versions": {
       "96.0": {
-        "image": "selenoid/vnc:chrome_96.0",
-        "port": "4444",
-        "path": "/"
-      }
-    }
-  },
-  "firefox": {
-    "default": "95.0",
-    "versions": {
-      "latest": {
-        "image": "selenoid/vnc:firefox_95.0",
+        "image": "selenoid/chrome:96.0",
         "port": "4444",
         "path": "/"
       }
