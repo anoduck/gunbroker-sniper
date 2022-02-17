@@ -22,15 +22,18 @@ import os
 import cfscrape
 from harvester import Harvester
 
+from configparser import ConfigParser
+
 # =======================================================
 # Variables
 # =======================================================
-
-username = ""
-password = ""
+conf = ConfigParser()
+conf.read('config.ini')
+username = conf.get('user','username')
+password = conf.get('user','password')
 
 #Item ID
-itemID = ""
+itemID = conf.get('item','item_number')
 
 # Item Url
 item_pattern = "https://www.gunbroker.com/item/"
@@ -85,7 +88,7 @@ if use_selenoid:
 else:
     driver = webdriver.Firefox(
         # executable_path=ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-        executable_path="/home/vassilios/bin/geckodriver")
+        executable_path="$HOME/bin/geckodriver")
 
 # --------------------------------------------------------------
 # Browser and Selenium Options

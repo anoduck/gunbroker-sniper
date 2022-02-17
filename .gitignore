@@ -3,6 +3,7 @@ user.cfg
 poetry.lock
 References
 .idea
+config.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -525,3 +526,4 @@ cython_debug/
 .history/
 
 
+/config.ini
