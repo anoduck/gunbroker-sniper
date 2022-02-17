@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
@@ -27,11 +28,11 @@ from configparser import ConfigParser
 # =======================================================
 conf = ConfigParser()
 conf.read('config.ini')
-username = conf.get('user','username')
-password = conf.get('user','password')
+username = conf.get('user', 'username')
+password = conf.get('user', 'password')
 
 #Item ID
-itemID = conf.get('item','item_number')
+itemID = conf.get('item', 'item_number')
 
 # Item Url
 item_pattern = "https://www.gunbroker.com/item/"
@@ -73,11 +74,10 @@ server_thread.start()
 # -------------------------------------------------------
 capabilities = {
     "browserName": "chrome",
-    "browserVersion": "97.0",
+    "browserVersion": "96.0",
     "selenoid:options": {
         "enableVNC": True,
         "enableVideo": False
-        # "sessionTimeout": "20m"
     }
 }
 
@@ -132,12 +132,12 @@ def retry_on_NoSuchElement(exception):
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 def login():
     driver.get(login_url)
-    time.sleep(60)
+    driver.find_element(By.ID, "onetrust-accept-btn-handler").click()
     try:
-        driver.find_element(By.ID, "Username").send_keys(Keys, username)
+        driver.find_element(By.ID, "Username").send_keys(username)
     except NoSuchElementException:
         print("Login element not found")
-    driver.find_element(By.ID, "Password").send_keys(Keys, password)
+    driver.find_element(By.ID, "Password").send_keys(password)
     try:
         harvey.launch_browser()
         tokens.get()

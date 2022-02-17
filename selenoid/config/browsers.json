@@ -1,6 +1,6 @@
 {
   "chrome": {
-    "default": "97.0",
+    "default": "96.0",
     "versions": {
       "96.0": {
         "image": "selenoid/chrome:96.0",
