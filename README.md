@@ -21,7 +21,7 @@
 ## gunbroker-sniper
 A sniper for gunbroker auctions
 
-### Status: Development
+### Status: Conceptual Development
 
 Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for
 this lies in obstacles present in the modern web that prevent unwanted automation from taking place. Implementations of
@@ -46,3 +46,85 @@ Without the work of Noah Cardoza this project would not be possible, and it woul
 support him and his work. 
 
 https://github.com/NoahCardoza
+
+### Diagram (Work in progress!)
+
+```plantuml
+@startuml
+'https://plantuml.com/activity-diagram-beta
+title GunBroker Sniper
+header A sniper for gunbroker auctions
+footer shooting for the smarter
+
+actor dude [
+	Title: The Dude
+	===
+	Lang: Grunts
+]
+rectangle localhost{
+	stack Docker{
+		node selenoid [
+			Title: Selenoid
+			===
+			Lang: Docker Image
+			---
+			Facility: Dockerized Headless WebDriver
+		]
+		package sel_view [
+			Title: Selenium-ui
+			===
+			Notes: Simply provides VNC of Selenoid
+		]
+		node cloud_proxy [
+			Title: CloudProxy
+			---
+			Lang: TypeScript
+			===
+			Notes: Commands must be in JSON
+		]
+		node captcha_harvester [
+			Title: CaptchaHarvester
+			===
+			Lang: Python
+			---
+			Notes: requires sitekey and domain to run in docker
+			....
+			But will receive separate instructions from cloud proxy
+		]
+	}
+	card main_py
+	component selenium [
+		TITLE: Selenium
+		===
+		Lang: Python
+		---
+		Notes: Python interface to the webdriver api.
+	]
+}
+cloud gunbroker{
+	frame recaptchav2 [
+	Title: Recaptcha V2
+	===
+	Lang: JavaScript
+	---
+	Notes: Interfaces with Google's Recaptcha API
+	]
+	artifact item [
+	TITLE: Desired Item
+	===
+	Lang: Pew-Pew
+	]
+}
+dude --> sel_view
+sel_view ~~> selenoid : ""'Magic'""
+main_py --> selenium
+selenium ..> selenoid : ""Docker Socket""
+selenoid ~~> item : ""HTTP Request""
+selenoid <~~> cloud_proxy : ""???""
+cloud_proxy ~~> gunbroker : ""HTTP Request""
+cloud_proxy ~~> captcha_harvester : ""json""
+captcha_harvester <-- recaptchav2 : ""HTTP Response""
+
+@enduml
+
+```

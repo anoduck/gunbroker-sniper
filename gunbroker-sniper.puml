@@ -1,12 +1,76 @@
 @startuml
 'https://plantuml.com/activity-diagram-beta
-!theme black-knight
+!theme cerulean-outline
 title GunBroker Sniper
+header A sniper for gunbroker auctions
+footer shooting for the smarter
 
-start
-stack Docker
+actor dude [
+	Title: The Dude
+	===
+	Lang: Grunts
+]
+rectangle localhost{
+	stack Docker{
+		node selenoid [
+			Title: Selenoid
+			===
+			Lang: Docker Image
+			---
+			Facility: Dockerized Headless WebDriver
+		]
+		package sel_view [
+			Title: Selenium-ui
+			===
+			Notes: Simply provides VNC of Selenoid
+		]
+		node cloud_proxy [
+			Title: CloudProxy
+			---
+			Lang: TypeScript
+			===
+			Notes: Commands must be in JSON
+		]
+		node captcha_harvester [
+			Title: CaptchaHarvester
+			===
+			Lang: Python
+			---
+			Notes: requires sitekey and domain to run in docker
+			....
+			But will receive separate instructions from cloud proxy
+		]
+	}
+	card main_py
+	component selenium [
+		Selenoid
+		---
+		Python
+	]
+}
+cloud gunbroker{
+	frame recaptchav2 [
+	Title: Recaptcha V2
+	===
+	Lang: JavaScript
+	---
+	Notes: Interfaces with Google's Recaptcha API
+	]
+	artifact item [
+	TITLE: Desired Item
+	===
+	Lang: Pew-Pew
+	]
+}
+dude --> sel_view
+sel_view ~~> selenoid : ""Magic""
+main_py --> selenium
+selenium --> selenoid : ""Docker Socket""
+selenoid ~~> item : ""HTTP Request""
+selenoid <~~> cloud_proxy : ""???""
+cloud_proxy ~~> gunbroker : ""HTTP Request""
+cloud_proxy ~~> captcha_harvester : ""json""
+captcha_harvester <-- recaptchav2 : ""HTTP Response""
 
-
-stop
 
 @enduml
