@@ -18,12 +18,10 @@
                         |__/                                       
 ```
 
-# gunbroker-sniper
+## gunbroker-sniper
 A sniper for gunbroker auctions
 
-## In Development
-
-### Status
+### Status: Development
 
 Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for
 this lies in obstacles present in the modern web that prevent unwanted automation from taking place. Implementations of
@@ -41,4 +39,10 @@ In order to setup this application there are several requirements that will be n
 * Docker (for selenoid)
 * Selenoid
 * Python (obviously)
-* 
+
+### Credits
+
+Without the work of Noah Cardoza this project would not be possible, and it would behove anyone using this program to help
+support him and his work. 
+
+https://github.com/NoahCardoza
