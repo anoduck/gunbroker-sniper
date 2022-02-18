@@ -19,6 +19,7 @@ from retrying import retry
 from random import randint
 import os
 import cfscrape
+import harvester
 from harvester import Harvester
 
 from configparser import ConfigParser
@@ -59,15 +60,15 @@ scraper = cfscrape.create_scraper()
 # ------------------------------------------------------
 # start harvester instance
 # ------------------------------------------------------
-harvey = Harvester()
+# harvey = Harvester('0.0.0.0', 5000, True)
+#
+# tokens = harvey.intercept_hcaptcha(
+#     domain='gunbroker.com',
+#     sitekey='6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn'
+# )
 
-tokens = harvey.intercept_hcaptcha(
-    domain='gunbroker.com',
-    sitekey='6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn'
-)
-
-server_thread = Thread(target=harvey.serve, daemon=True)
-server_thread.start()
+# server_thread = Thread(target=harvey.serve, daemon=True)
+# server_thread.start()
 
 # -------------------------------------------------------
 # Setup Selenoid
@@ -97,6 +98,7 @@ opts.add_argument(
 opts.add_argument("--headless")
 opts.add_argument("--no-sandbox")
 opts.add_argument("--lang=en-US")
+opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
 opts.add_argument("--dns-prefetch-disable")
 opts.set_capability("javascript.enabled", True)
 # prefs.set_capability("browser.download.folderList", 2)
@@ -132,17 +134,18 @@ def retry_on_NoSuchElement(exception):
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 def login():
     driver.get(login_url)
+    time.sleep(15)
     driver.find_element(By.ID, "onetrust-accept-btn-handler").click()
     try:
         driver.find_element(By.ID, "Username").send_keys(username)
     except NoSuchElementException:
         print("Login element not found")
     driver.find_element(By.ID, "Password").send_keys(password)
-    try:
-        harvey.launch_browser()
-        tokens.get()
-    except NoSuchElementException:
-        print("harvey crashed")
+    # try:
+    #     # harvey.launch_browser()
+    #     tokens.get()
+    # except NoSuchElementException:
+    #     print("harvey crashed")
     driver.find_element(By.ID, "btnLogin").click()
     time.sleep(5)
     itemUrl = item_pattern + str(itemID)

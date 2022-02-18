@@ -21,8 +21,20 @@ services:
     command: ["--selenoid-uri", "http://selenoid-box:4444"]
   cloudproxy:
     restart: always
+    container_name: cloudproxy
     image: cloudproxy:latest
     build:
       context: CloudProxy
+      args:
+        CAPTCHA_SOLVER: harvester
+        HARVESTER_ENDPOINT: http://harvester:5000/gunbroker.com/token
     ports:
       - "8191:8191"
+  harvester:
+    restart: always
+    container_name: harvester
+    image: harvester:latest
+    build:
+      context: CaptchaHarvester
+    ports:
+      - "5000:5000"
