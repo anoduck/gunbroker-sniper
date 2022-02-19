@@ -5,6 +5,7 @@ References
 .idea
 config.ini
 .env
+.envrc
 vcs.xml
 
 # Byte-compiled / optimized / DLL files

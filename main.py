@@ -27,8 +27,8 @@ from harvester import Harvester
 # =======================================================
 # Variables
 # =======================================================
-username = os.getenv('username')
-password = os.getenv('password')
+username = os.getenv('USERNAME')
+password = os.getenv('PASSWORD')
 
 itemID = os.getenv('ITEMID')
 
@@ -57,19 +57,6 @@ down_dir = str(os.getcwd())
 # -----------------------------------------------------
 scraper = cfscrape.create_scraper()
 
-# ------------------------------------------------------
-# start harvester instance
-# ------------------------------------------------------
-# harvey = Harvester('0.0.0.0', 5000, True)
-#
-# tokens = harvey.intercept_hcaptcha(
-#     domain='gunbroker.com',
-#     sitekey='6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn'
-# )
-
-# server_thread = Thread(target=harvey.serve, daemon=True)
-# server_thread.start()
-
 # -------------------------------------------------------
 # Setup Selenoid
 # -------------------------------------------------------
@@ -78,7 +65,9 @@ capabilities = {
     "browserVersion": "96.0",
     "selenoid:options": {
         "enableVNC": True,
-        "enableVideo": False
+        "enableVideo": False,
+        "videoScreenSize": "1920x1080",
+        "hostsEntries": ["gunbroker.com:127.0.0.1"]
     }
 }
 
@@ -141,13 +130,8 @@ def login():
     except NoSuchElementException:
         print("Login element not found")
     driver.find_element(By.ID, "Password").send_keys(password)
-    # try:
-    #     # harvey.launch_browser()
-    #     tokens.get()
-    # except NoSuchElementException:
-    #     print("harvey crashed")
+    time.sleep(3)
     driver.find_element(By.ID, "btnLogin").click()
-    time.sleep(5)
     itemUrl = item_pattern + str(itemID)
     driver.get(itemUrl)
 
