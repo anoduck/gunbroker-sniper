@@ -19,17 +19,6 @@ services:
     ports:
       - "8080:8080"
     command: ["--selenoid-uri", "http://selenoid-box:4444"]
-  cloudproxy:
-    restart: always
-    container_name: cloudproxy
-    image: cloudproxy:latest
-    build:
-      context: CloudProxy
-      args:
-        CAPTCHA_SOLVER: harvester
-        HARVESTER_ENDPOINT: http://harvester:5000/$DOMAIN/token
-    ports:
-      - "8191:8191"
   harvester:
     restart: always
     container_name: harvester
