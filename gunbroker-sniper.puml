@@ -24,13 +24,6 @@ rectangle localhost{
 			===
 			Notes: Simply provides VNC of Selenoid
 		]
-		node cloud_proxy [
-			Title: CloudProxy
-			---
-			Lang: TypeScript
-			===
-			Notes: Commands must be in JSON
-		]
 		node captcha_harvester [
 			Title: CaptchaHarvester
 			===
@@ -67,9 +60,7 @@ sel_view ~~> selenoid : ""Magic""
 main_py --> selenium
 selenium --> selenoid : ""Docker Socket""
 selenoid ~~> item : ""HTTP Request""
-selenoid <~~> cloud_proxy : ""???""
-cloud_proxy ~~> gunbroker : ""HTTP Request""
-cloud_proxy ~~> captcha_harvester : ""json""
+selenoid ~~> captcha_harvester : "DNS Proxy"
 captcha_harvester <-- recaptchav2 : ""HTTP Response""
 
 
