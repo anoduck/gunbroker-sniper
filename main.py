@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
 import time
@@ -22,18 +22,18 @@ import cfscrape
 import harvester
 from harvester import Harvester
 
-from configparser import ConfigParser
+# from configparser import ConfigParser
 
 # =======================================================
 # Variables
 # =======================================================
-conf = ConfigParser()
-conf.read('config.ini')
-username = conf.get('user', 'username')
-password = conf.get('user', 'password')
+username = os.getenv('username')
+password = os.getenv('password')
 
-#Item ID
-itemID = conf.get('item', 'item_number')
+itemID = os.getenv('ITEMID')
+
+DOMAIN = os.getenv('DOMAIN')
+SITEKEY = os.getenv('SITEKEY')
 
 # Item Url
 item_pattern = "https://www.gunbroker.com/item/"

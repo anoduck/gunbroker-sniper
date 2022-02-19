@@ -1,6 +1,9 @@
 # For CaptchaHarvester
 
-From alpine:edge
+FROM alpine:edge
+
+ARG SITEKEY
+ARG DOMAIN
 
 EXPOSE 5000
 
@@ -11,4 +14,4 @@ RUN apk update && apk add python3 \
 
 RUN pip install captcha-harvester
 
-ENTRYPOINT harvester -H 0.0.0.0 -p 5000 -d gunbroker.com -k 6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn -v recaptcha-v2
+ENTRYPOINT harvester -H 0.0.0.0 -p 5000 -d $DOMAIN -k $SITEKEY -v recaptcha-v2

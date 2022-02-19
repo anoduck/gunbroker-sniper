@@ -4,6 +4,8 @@ poetry.lock
 References
 .idea
 config.ini
+.env
+vcs.xml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

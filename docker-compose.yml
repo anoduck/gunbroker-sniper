@@ -27,7 +27,7 @@ services:
       context: CloudProxy
       args:
         CAPTCHA_SOLVER: harvester
-        HARVESTER_ENDPOINT: http://harvester:5000/gunbroker.com/token
+        HARVESTER_ENDPOINT: http://harvester:5000/$DOMAIN/token
     ports:
       - "8191:8191"
   harvester:
