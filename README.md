@@ -30,23 +30,19 @@ accomplish. As such, the original sniper is unsuited to accomplish these tasks.
 
 The original sniper appears to have facilitated both the use of requests and of selenium to setup the snipe. 
 This is actually a brilliant strategy, as requests will always complete the transaction before selenium can even load the page.
-To simplify the management of the chrome driver, it is planned to incorporate the use of selenoid to make the project as flexible and uniform as one can.
+~~To simplify the management of the chrome driver, it is planned to incorporate the use of selenoid to make the project as flexible and uniform as one can.~~
 
 ### Setup
 
 In order to setup this application there are several requirements that will be needed. 
 
-* Docker (for selenoid)
-* Selenoid
+* ~~Docker (for selenoid)~~
+* ~~Selenoid~~
 * Python (obviously)
 
-### Credits
-
-Without the work of Noah Cardoza this project would not be possible, and it would behove anyone using this program to help
-support him and his work. 
-
-https://github.com/NoahCardoza
 
 ### Diagram (Work in progress!)
 
-![GunBroker Sniper](https://www.plantuml.com/plantuml/png/NOox3KCX303xJ94CaES-5QiOi0011lcZh1_IlkfEEkc26ehv78zNupGyayjuLhEj7u3Ih7gyqfg0lBAd3iKvokeaR-MsIK3m2nFLZjxRjV_ZG9mFVm00)
+[Project Puml](gunbroker-sniper.puml)
+
+!~~[GunBroker Sniper](https://www.plantuml.com/plantuml/png/NOox3KCX303xJ94CaES-5QiOi0011lcZh1_IlkfEEkc26ehv78zNupGyayjuLhEj7u3Ih7gyqfg0lBAd3iKvokeaR-MsIK3m2nFLZjxRjV_ZG9mFVm00)~~

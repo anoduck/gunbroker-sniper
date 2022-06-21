@@ -11,34 +11,35 @@ actor dude [
 	Lang: Grunts
 ]
 rectangle localhost{
-	stack Docker{
-		node selenoid [
-			Title: Selenoid
-			===
-			Lang: Docker Image
-			---
-			Facility: Dockerized Headless WebDriver
-		]
-		package sel_view [
-			Title: Selenium-ui
-			===
-			Notes: Simply provides VNC of Selenoid
-		]
-		node captcha_harvester [
-			Title: CaptchaHarvester
-			===
-			Lang: Python
-			---
-			Notes: requires sitekey and domain to run in docker
-			....
-			But will receive separate instructions from cloud proxy
-		]
-	}
-	card main_py
-	component selenium [
-		Selenoid
+	node python [
+		Title: Python 3.10
+		===
+		File: main.py
 		---
-		Python
+		Facility: Main source code
+	]
+	node geckodriver [
+		Title: geckodriver
+		===
+		Lang: Docker Image
+		---
+		Facility: Dockerized Headless WebDriver
+	]
+	node selenium [
+		Title: Selenium
+		===
+		Type: Python Module
+		---
+		Facility: Translate directions to geckodriver
+	]
+	node captcha_bypass [
+		Title: Captcha_Bypass
+		===
+		Lang: Python
+		---
+		Notes: requires sitekey and domain to run in docker
+		....
+		But will receive separate instructions from cloud proxy
 	]
 }
 cloud gunbroker{
@@ -55,13 +56,14 @@ cloud gunbroker{
 	Lang: Pew-Pew
 	]
 }
-dude --> sel_view
-sel_view ~~> selenoid : ""Magic""
-main_py --> selenium
-selenium --> selenoid : ""Docker Socket""
-selenoid ~~> item : ""HTTP Request""
-selenoid ~~> captcha_harvester : "DNS Proxy"
-captcha_harvester <-- recaptchav2 : ""HTTP Response""
+'dude --> sel_view
+'sel_view ~~> geckodriver : ""Magic""
+dude --> python
+python ~~> geckodriver
+selenium --> geckodriver : ""Docker Socket""
+geckodriver ~~> item : ""HTTP Request""
+geckodriver ~~> captcha_bypass : "DNS Proxy"
+captcha_bypass <-- recaptchav2 : ""HTTP Response""
 
 
 @enduml

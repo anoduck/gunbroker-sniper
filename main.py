@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+from selenium.webdriver import Firefox
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
 import time
 import logging
@@ -19,8 +23,7 @@ from retrying import retry
 from random import randint
 import os
 import cfscrape
-# import harvester
-# from harvester import Harvester
+import captcha_bypass.recaptcha_buster_bypass
 
 # from configparser import ConfigParser
 
@@ -49,8 +52,8 @@ logging.getLogger('harvester').setLevel(logging.CRITICAL)
 # ------------------------------------------------------
 # Setup Browser (Whatever this is?)
 # ------------------------------------------------------
-cm_path = "~/bin/cm"
-down_dir = str(os.getcwd())
+# cm_path = "~/bin/cm"
+# down_dir = str(os.getcwd())
 
 # -----------------------------------------------------
 # Create cloudflare scraper isinstance
@@ -63,18 +66,17 @@ scraper = cfscrape.create_scraper()
 capabilities = {
     "browserName": "chrome",
     "browserVersion": "96.0",
-    "selenoid:options": {
-        "enableVNC": True,
-        "enableVideo": False,
-        "videoScreenSize": "1920x1080",
-        "hostsEntries": ["gunbroker.com:127.0.0.1"]
-    }
+    # "selenoid:options": {
+    #     "enableVNC": True,
+    #     "enableVideo": False,
+    #     "videoScreenSize": "1920x1080",
+    #     "hostsEntries": ["gunbroker.com:127.0.0.1"]
+    # }
 }
 
-driver = webdriver.Remote(
-    command_executor="http://127.0.0.1:4444/wd/hub",
-    desired_capabilities=capabilities
-)
+driver = webdriver.Firefox(
+    # executable_path=ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+    executable_path="./geckodriver_linux")
 
 # --------------------------------------------------------------
 # Browser and Selenium Options
