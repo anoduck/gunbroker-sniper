@@ -19,11 +19,11 @@ services:
     ports:
       - "8080:8080"
     command: ["--selenoid-uri", "http://selenoid-box:4444"]
-  harvester:
-    restart: always
-    container_name: harvester
-    image: harvester:latest
-    build:
-      context: CaptchaHarvester
-    ports:
-      - "5000:5000"
+#  harvester:
+#    restart: always
+#    container_name: harvester
+#    image: harvester:latest
+#    build:
+#      context: CaptchaHarvester
+#    ports:
+#      - "5000:5000"

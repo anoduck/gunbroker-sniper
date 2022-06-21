@@ -19,8 +19,8 @@ from retrying import retry
 from random import randint
 import os
 import cfscrape
-import harvester
-from harvester import Harvester
+# import harvester
+# from harvester import Harvester
 
 # from configparser import ConfigParser
 
