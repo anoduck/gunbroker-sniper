@@ -23,7 +23,7 @@ from retrying import retry
 from random import randint
 import os
 import cfscrape
-import captcha_bypass.recaptcha_buster_bypass
+import recaptcha_bypass
 
 # from configparser import ConfigParser
 

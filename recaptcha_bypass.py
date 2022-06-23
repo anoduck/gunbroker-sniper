@@ -24,6 +24,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from selenium.webdriver.firefox.options import Options
 
 # Randomization Related
 MIN_RAND = 0.64
@@ -34,13 +35,14 @@ LONG_MAX_RAND = 11.1
 # =======================================================
 # Variables
 # =======================================================
-username = os.getenv('USERNAME')
-password = os.getenv('PASSWORD')
+# username = os.getenv('USERNAME')
+# password = os.getenv('PASSWORD')
+#
+# itemID = os.getenv('ITEMID')
 
-itemID = os.getenv('ITEMID')
-
-DOMAIN = os.getenv('DOMAIN')
-SITEKEY = os.getenv('SITEKEY')
+# Site Specific
+DOMAIN = "gunbroker.com"
+SITE_KEY = "6LeyID0aAAAAAOVFOxIySt6jjDofMGAM08yesbBn"
 
 # Item Url
 item_pattern = "https://www.gunbroker.com/item/"
@@ -149,23 +151,8 @@ index = int(uniform(0, len(PROXY)))
 PROXY = PROXY[index]["host"] + ":" + str(PROXY[index]["port"])
 
 
-class SyncMe(unittest.TestCase):
-    # =======================================================
-    # Variables
-    # =======================================================
-    username = os.getenv('USERNAME')
-    password = os.getenv('PASSWORD')
-
-    itemID = os.getenv('ITEMID')
-
-    DOMAIN = os.getenv('DOMAIN')
-    SITEKEY = os.getenv('SITEKEY')
-
-    # Item Url
-    item_pattern = "https://www.gunbroker.com/item/"
-
-    # login url
-    login_url = "https://www.gunbroker.com/user/login"
+# class SyncMe(unittest.TestCase):
+class SyncMe:
 
     # number = None
     headless = False
@@ -181,6 +168,8 @@ class SyncMe(unittest.TestCase):
 
     # Setup profile with buster captcha solver
     def setUpProfile(self):
+        opt = Options()
+        opt.add_argument(_install_extension, "buster_captcha_solver_for_humans-0.7.2-an+fx.xpi")
         self.profile = webdriver.FirefoxProfile()
         self.profile._install_extension("buster_captcha_solver_for_humans-0.7.2-an+fx.xpi", unpack=False)
         self.profile.set_preference("security.fileuri.strict_origin_policy", False)
@@ -376,6 +365,7 @@ class SyncMe(unittest.TestCase):
 
     def login(self):
 
+        self.setUp()
         driver = self.driver
         self.log("Fetch URL")
         driver.get(login_url)
@@ -411,7 +401,7 @@ class SyncMe(unittest.TestCase):
         self.wait_between(MIN_RAND, MAX_RAND)
 
         self.log("Opening Item Page")
-        itemUrl = item_pattern + str(itemID)
+        itemUrl = item_pattern + str(itemid)
         driver.get(itemUrl)
         self.log("Opened Item Page")
 
@@ -420,10 +410,24 @@ class SyncMe(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    SyncMe.login()
+    s = SyncMe()
+    # s.login.username = os.getenv('USERNAME')
+    # s.login.password = os.getenv('PASSWORD')
+    # s.login.itemid = os.getenv('ITEMID')
+    s.login()
+    # SyncMe.login(self)
+    # if len(username) >= 3:
+    #     if len(password) >= 3:
+    #         SyncMe()
+    #     else:
+    #         print("Password must be defined in .env")
+    #         exit(0)
+    # else:
+    #     print("Username must be defined in .env")
+    #     exit(0)
     # if len(sys.argv) > 0:
     #     SyncMe.number = sys.argv.pop()
     # else:
     #     print("Must have number to check")
     #     exit(0)
-    unittest.main()
+    # unittest.main()
