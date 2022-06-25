@@ -182,8 +182,8 @@ def proxy_setup():
 #   \_/\_/\__,_|_|\__| |___|___|\__|\_/\_/\___\___|_||_|
 # ------------------------------------------------------
 def wait_between(a, b):
-        rand = uniform(a, b)
-        sleep(rand)
+    rand = uniform(a, b)
+    sleep(rand)
 
 
 #   __  ___                    __  ___                            __
@@ -237,7 +237,7 @@ def human_like_mouse_move(action, start_element):
 #\___/\_,_/ .__/\__/\__/_//_/\_,_/
 #        /_/
 # -----------------------------------
-@retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+# @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 def do_captcha():
     driver.switch_to.default_content()
@@ -245,13 +245,15 @@ def do_captcha():
     driver.switch_to.frame(iframes[0])
     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
     wait_between(MIN_RAND, MAX_RAND)
-    action = ActionChains(driver);
+    action = ActionChains(driver)
     human_like_mouse_move(action, check_box)
     check_box.click()
     wait_between(MIN_RAND, MAX_RAND)
-    action = ActionChains(driver);
+    action = ActionChains(driver)
     human_like_mouse_move(action, check_box)
-    if iframes[2] and iframes[2].is_displayed():
+    # checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
+    challenge = driver.find_element(By.ID, "rc-imageselect")
+    if challenge and challenge.is_displayed():
         driver.switch_to.default_content()
         driver.switch_to.frame(iframes[2])
         wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
@@ -314,11 +316,8 @@ def login(username, password):
         do_captcha()
     except StaleElementReferenceException:
         print("Caught Stale Captcha Element")
-    try:
-        if cookie_message and cookie_message.is_displayed():
-            cookie_message.click()
-    except StaleElementReferenceException:
-        print("Caught Stale Cookie Element")
+    if cookie_message.is_displayed():
+        cookie_message.click()
     driver.find_element(By.ID, "btnLogin").click()
     itemUrl = item_pattern + str(itemID)
     driver.get(itemUrl)
