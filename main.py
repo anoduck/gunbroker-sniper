@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 
+# =======================================================================================================================================
+#   /$$$$$$                   /$$$$$$$                   /$$                              /$$$$$$          /$$
+#  /$$__  $$                 | $$__  $$                 | $$                             /$$__  $$        |__/
+# | $$  \__//$$   /$$/$$$$$$$| $$  \ $$ /$$$$$$  /$$$$$$| $$   /$$ /$$$$$$  /$$$$$$     | $$  \__//$$$$$$$ /$$ /$$$$$$  /$$$$$$  /$$$$$$
+# | $$ /$$$| $$  | $| $$__  $| $$$$$$$ /$$__  $$/$$__  $| $$  /$$//$$__  $$/$$__  $$    |  $$$$$$| $$__  $| $$/$$__  $$/$$__  $$/$$__  $$
+# | $$|_  $| $$  | $| $$  \ $| $$__  $| $$  \__| $$  \ $| $$$$$$/| $$$$$$$| $$  \__/     \____  $| $$  \ $| $| $$  \ $| $$$$$$$| $$  \__/
+# | $$  \ $| $$  | $| $$  | $| $$  \ $| $$     | $$  | $| $$_  $$| $$_____| $$           /$$  \ $| $$  | $| $| $$  | $| $$_____| $$
+# |  $$$$$$|  $$$$$$| $$  | $| $$$$$$$| $$     |  $$$$$$| $$ \  $|  $$$$$$| $$          |  $$$$$$| $$  | $| $| $$$$$$$|  $$$$$$| $$
+#  \______/ \______/|__/  |__|_______/|__/      \______/|__/  \__/\_______|__/           \______/|__/  |__|__| $$____/ \_______|__/
+#                                                                                                            | $$
+#                                                                                                            | $$
+#                                                                                                            |__/
+# ========================================================================================================================================
+
+import random
+
 import numpy as np
 import scipy.interpolate as si
 
@@ -60,7 +76,7 @@ LONG_MAX_RAND = 11.1
 # ---------------------------------------------------
 # logging shit
 # ---------------------------------------------------
-logging.getLogger('harvester').setLevel(logging.CRITICAL)
+logging.getLogger('cfscrape').setLevel(logging.CRITICAL)
 
 # ------------------------------------------------------
 # Setup Browser (Whatever this is?)
@@ -142,6 +158,17 @@ def retry_on_NoSuchElement(exception):
 # =============================================================================
 # Begin
 # -----------------------------------------------------------------------------
+#    ___                      ____    __
+#   / _ \_______ __ ____ __  / __/__ / /___ _____
+#  / ___/ __/ _ \\ \ / // / _\ \/ -_) __/ // / _ \
+# /_/  /_/  \___/_\_\\_, / /___/\__/\__/\_,_/ .__/
+#                   /___/                  /_/
+# -------------------------------------------------
+def proxy_setup():
+    with open(proxy_file) as pk:
+        proxy_raw = random.choices(list(pk),[],k=1)
+        print(proxy_raw)
+
 
 # __      __    _ _     ___     _
 # \ \    / /_ _(_) |_  | _ )___| |___ __ _____ ___ _ _
@@ -204,29 +231,29 @@ def human_like_mouse_move(action, start_element):
 #\___/\_,_/ .__/\__/\__/_//_/\_,_/
 #        /_/
 # -----------------------------------
+@retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+@retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 def do_captcha(driver):
 
     driver.switch_to.default_content()
-    iframes = driver.find_elements_by_tag_name("iframe")
-    driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
-
+    iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
+    # driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
+    driver.switch_to.frame(iframes[0])
     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
 
     wait_between(MIN_RAND, MAX_RAND)
 
     action = ActionChains(driver);
     human_like_mouse_move(action, check_box)
-
     check_box.click()
 
     wait_between(MIN_RAND, MAX_RAND)
 
     action = ActionChains(driver);
     human_like_mouse_move(action, check_box)
-
-    if iframes and iframes[0].is_displayed():
+    if iframes:
         driver.switch_to.default_content()
-        iframes = driver.find_elements_by_tag_name("iframe")
+        # iframes = driver.find_elements_by_tag_name("iframe")
         driver.switch_to.frame(iframes[2])
 
         wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
@@ -256,8 +283,10 @@ def do_captcha(driver):
         except:
             print("No Alert")
 
-    driver.implicitly_wait(5)
-    driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
+        driver.implicitly_wait(5)
+        # driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
+        driver.switch_to.frame(iframes[0])
+
 
 #   __             _
 #  / /  ___  ___ _(_)__
@@ -266,6 +295,7 @@ def do_captcha(driver):
 #          /___/
 # ------------------------
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+@retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 def login(username, password):
     driver.get(login_url)
     wait_between(a=MIN_RAND, b=MAX_RAND)
@@ -285,6 +315,8 @@ def login(username, password):
     if cookie_message and cookie_message.is_displayed():
         cookie_message.click()
     do_captcha(driver)
+    if cookie_message and cookie_message.is_displayed():
+        cookie_message.click()
     driver.find_element(By.ID, "btnLogin").click()
     itemUrl = item_pattern + str(itemID)
     driver.get(itemUrl)

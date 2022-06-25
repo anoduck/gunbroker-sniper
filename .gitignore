@@ -6,6 +6,7 @@ References
 config.ini
 .env
 .envrc
+*.venv
 vcs.xml
 .idea
 

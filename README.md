@@ -21,18 +21,24 @@
 ## gunbroker-sniper
 A sniper for gunbroker auctions
 
-### Status: Conceptual Development
+### Status: In Development
 
-Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for this lies in obstacles present in the modern web that prevent unwanted automation from taking place. Implementations of cloudflare and ReCaptcha have made the job of surfing and acquiring information in an automated fashion quite difficult to accomplish. As such, the original sniper is unsuited to accomplish these tasks. 
-
-Current efforts revolve around thwarting recaptcha to enable the sniper to work.
+Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for this is the obstacles present in the modern webframework prevent unwanted automation from occurring. Implementations of cloudflare and ReCaptcha have made the job of automation difficult to accomplish. As such, the original sniper was unsuited for the task.
 
 ### Setup
 
+Below offers an abridged unexhaustive overview of what is required to  configure your system and run the sniper.
+
+#### Requirements
+
 In order to setup this application there are several requirements that will be needed. 
 
-* Selenium
+* the latest geckodriver installed on your that matches the version of firefox on your system
+* firefox
 * Python (obviously)
+* Either a working installation of proxybroker (>python 3.10) or the pipenv environment provided
+* required dependencies installed
+* poetry
 
 ### Bidding on GunBroker
 

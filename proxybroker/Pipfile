@@ -4,17 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-argcomplete = "~=2.0.0"
-requests = "~=2.27.1"
-cfscrape = "~=2.1.1"
-selenium = "~=4.1.0"
-furl = "~=2.1.3"
-retrying = "~=1.3.3"
-lxml = "~=4.7.1"
-captcha-harvester = "*"
 proxybroker = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.10"
+python_version = "3.9"
