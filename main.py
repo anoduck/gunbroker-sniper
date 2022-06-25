@@ -45,6 +45,7 @@ from random import uniform
 from time import sleep
 import os
 import cfscrape
+from proxy_randomizer import RegisteredProviders
 from recaptcha_buster_bypass import SyncMe
 
 # from configparser import ConfigParser
@@ -152,12 +153,16 @@ def retry_on_NoSuchElement(exception):
     """ Return True if exception is NoSuchElement """
     return isinstance(exception, NoSuchElementException)
 
+def retry_on_StaleElement(exception):
+    """ Return True if exception is StaleElementReferenceException """
+    return isinstance(exception, StaleElementReferenceException)
 
 # @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 # =============================================================================
 # Begin
 # -----------------------------------------------------------------------------
+
 #    ___                      ____    __
 #   / _ \_______ __ ____ __  / __/__ / /___ _____
 #  / ___/ __/ _ \\ \ / // / _\ \/ -_) __/ // / _ \
@@ -165,9 +170,10 @@ def retry_on_NoSuchElement(exception):
 #                   /___/                  /_/
 # -------------------------------------------------
 def proxy_setup():
-    with open(proxy_file) as pk:
-        proxy_raw = random.choices(list(pk),[],k=1)
-        print(proxy_raw)
+    rp = RegisteredProviders()
+    rp.parse_providers()
+    proxy = rp.get_random_proxy()
+    return proxy
 
 
 # __      __    _ _     ___     _
@@ -233,58 +239,40 @@ def human_like_mouse_move(action, start_element):
 # -----------------------------------
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
-def do_captcha(driver):
-
+def do_captcha():
     driver.switch_to.default_content()
     iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
-    # driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
     driver.switch_to.frame(iframes[0])
     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
-
     wait_between(MIN_RAND, MAX_RAND)
-
     action = ActionChains(driver);
     human_like_mouse_move(action, check_box)
     check_box.click()
-
     wait_between(MIN_RAND, MAX_RAND)
-
     action = ActionChains(driver);
     human_like_mouse_move(action, check_box)
-    if iframes:
+    if iframes[2] and iframes[2].is_displayed():
         driver.switch_to.default_content()
-        # iframes = driver.find_elements_by_tag_name("iframe")
         driver.switch_to.frame(iframes[2])
-
         wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
-
         capt_btn = WebDriverWait(driver, 50).until(
             EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
         )
-
         wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
-
         capt_btn.click()
-
         wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
-
         try:
             alert_handler = WebDriverWait(driver, 20).until(
                 EC.alert_is_present()
             )
             alert = driver.switch_to.alert
             wait_between(MIN_RAND, MAX_RAND)
-
             alert.accept()
-
             wait_between(MIN_RAND, MAX_RAND)
-
-            do_captcha(driver)
-        except:
+            do_captcha()
+        except NoSuchElementException:
             print("No Alert")
-
         driver.implicitly_wait(5)
-        # driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
         driver.switch_to.frame(iframes[0])
 
 
@@ -296,7 +284,15 @@ def do_captcha(driver):
 # ------------------------
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
+@retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 def login(username, password):
+    PROXY = proxy_setup()
+    opts.capabilities['proxy'] = {
+        "proxyType": "MANUAL",
+        "httpProxy": PROXY,
+        "ftpProxy": PROXY,
+        "sslProxy": PROXY
+    }
     driver.get(login_url)
     wait_between(a=MIN_RAND, b=MAX_RAND)
     cookie_message = driver.find_element(By.ID, "onetrust-accept-btn-handler")
@@ -314,12 +310,19 @@ def login(username, password):
     wait_between(a=MIN_RAND, b=MAX_RAND)
     if cookie_message and cookie_message.is_displayed():
         cookie_message.click()
-    do_captcha(driver)
-    if cookie_message and cookie_message.is_displayed():
-        cookie_message.click()
+    try:
+        do_captcha()
+    except StaleElementReferenceException:
+        print("Caught Stale Captcha Element")
+    try:
+        if cookie_message and cookie_message.is_displayed():
+            cookie_message.click()
+    except StaleElementReferenceException:
+        print("Caught Stale Cookie Element")
     driver.find_element(By.ID, "btnLogin").click()
     itemUrl = item_pattern + str(itemID)
     driver.get(itemUrl)
+
 
 # ----------------------------------------------------
 def browser_close():
