@@ -44,7 +44,6 @@ In order to set up this application there are several requirements that will be 
 * the latest geckodriver installed on your that matches the version of firefox on your system
 * firefox
 * Python (obviously)
-* Either a working installation of proxybroker (>python 3.10) or the pipenv environment provided
 * required dependencies installed
 * poetry
 
