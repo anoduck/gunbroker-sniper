@@ -12,7 +12,7 @@ actor dude [
 ]
 rectangle localhost{
 	node python [
-		Title: Python 3.10
+		Title: Python 3.9
 		===
 		File: main.py
 		---
@@ -21,9 +21,9 @@ rectangle localhost{
 	node geckodriver [
 		Title: geckodriver
 		===
-		Lang: Docker Image
+		Lang: Local system install
 		---
-		Facility: Dockerized Headless WebDriver
+		Facility: Headless Webdriver
 	]
 	node selenium [
 		Title: Selenium
@@ -32,14 +32,12 @@ rectangle localhost{
 		---
 		Facility: Translate directions to geckodriver
 	]
-	node captcha_bypass [
-		Title: Captcha_Bypass
+	node captcha_buster [
+		Title: Buster: Captcha Solving for Humans
 		===
-		Lang: Python
+		Form: Firefox Extension
 		---
-		Notes: requires sitekey and domain to run in docker
-		....
-		But will receive separate instructions from cloud proxy
+		Facility: Resolve Captcha Challenges
 	]
 }
 cloud gunbroker{
@@ -59,11 +57,11 @@ cloud gunbroker{
 'dude --> sel_view
 'sel_view ~~> geckodriver : ""Magic""
 dude --> python
-python ~~> geckodriver
-selenium --> geckodriver : ""Docker Socket""
+python ~~> selenium
+selenium --> geckodriver
 geckodriver ~~> item : ""HTTP Request""
-geckodriver ~~> captcha_bypass : "DNS Proxy"
-captcha_bypass <-- recaptchav2 : ""HTTP Response""
+geckodriver ~~> captcha_buster
+captcha_buster <-- recaptchav2 : ""HTTP Response""
 
 
 @enduml

@@ -8,7 +8,6 @@ config.ini
 .envrc
 *.venv
 vcs.xml
-.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

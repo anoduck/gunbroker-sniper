@@ -1,30 +1,32 @@
 #!/usr/bin/env python
 
 # =======================================================================================================================================
-#   /$$$$$$                   /$$$$$$$                   /$$                              /$$$$$$          /$$
-#  /$$__  $$                 | $$__  $$                 | $$                             /$$__  $$        |__/
-# | $$  \__//$$   /$$/$$$$$$$| $$  \ $$ /$$$$$$  /$$$$$$| $$   /$$ /$$$$$$  /$$$$$$     | $$  \__//$$$$$$$ /$$ /$$$$$$  /$$$$$$  /$$$$$$
-# | $$ /$$$| $$  | $| $$__  $| $$$$$$$ /$$__  $$/$$__  $| $$  /$$//$$__  $$/$$__  $$    |  $$$$$$| $$__  $| $$/$$__  $$/$$__  $$/$$__  $$
-# | $$|_  $| $$  | $| $$  \ $| $$__  $| $$  \__| $$  \ $| $$$$$$/| $$$$$$$| $$  \__/     \____  $| $$  \ $| $| $$  \ $| $$$$$$$| $$  \__/
-# | $$  \ $| $$  | $| $$  | $| $$  \ $| $$     | $$  | $| $$_  $$| $$_____| $$           /$$  \ $| $$  | $| $| $$  | $| $$_____| $$
-# |  $$$$$$|  $$$$$$| $$  | $| $$$$$$$| $$     |  $$$$$$| $$ \  $|  $$$$$$| $$          |  $$$$$$| $$  | $| $| $$$$$$$|  $$$$$$| $$
-#  \______/ \______/|__/  |__|_______/|__/      \______/|__/  \__/\_______|__/           \______/|__/  |__|__| $$____/ \_______|__/
-#                                                                                                            | $$
-#                                                                                                            | $$
-#                                                                                                            |__/
-# ========================================================================================================================================
+#   /$$$$$$                      /$$$$$$$                      /$$
+#  /$$__  $$                    | $$__  $$                    | $$
+# | $$  \__/ /$$   /$$ /$$$$$$$ | $$  \ $$  /$$$$$$   /$$$$$$ | $$   /$$  /$$$$$$   /$$$$$$
+# | $$ /$$$$| $$  | $$| $$__  $$| $$$$$$$  /$$__  $$ /$$__  $$| $$  /$$/ /$$__  $$ /$$__  $$
+# | $$|_  $$| $$  | $$| $$  \ $$| $$__  $$| $$  \__/| $$  \ $$| $$$$$$/ | $$$$$$$$| $$  \__/
+# | $$  \ $$| $$  | $$| $$  | $$| $$  \ $$| $$      | $$  | $$| $$_  $$ | $$_____/| $$
+# |  $$$$$$/|  $$$$$$/| $$  | $$| $$$$$$$/| $$      |  $$$$$$/| $$ \  $$|  $$$$$$$| $$
+#  \______/  \______/ |__/  |__/|_______/ |__/       \______/ |__/  \__/ \_______/|__/
 
-import random
+# ███████╗███╗   ██╗██╗██████╗ ███████╗██████╗
+# ██╔════╝████╗  ██║██║██╔══██╗██╔════╝██╔══██╗
+# ███████╗██╔██╗ ██║██║██████╔╝█████╗  ██████╔╝
+# ╚════██║██║╚██╗██║██║██╔═══╝ ██╔══╝  ██╔══██╗
+# ███████║██║ ╚████║██║██║     ███████╗██║  ██║
+# ╚══════╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝
+# ========================================================================================================================================
 
 import numpy as np
 import scipy.interpolate as si
 
 from selenium import webdriver
-from selenium import webdriver
 from selenium.webdriver import Firefox
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.by import By
@@ -73,76 +75,31 @@ MAX_RAND = 1.27
 LONG_MIN_RAND = 4.78
 LONG_MAX_RAND = 11.1
 
-
+# wait = WebDriverWait(driver, 67)
+# driver.implicitly_wait(35)
 # ---------------------------------------------------
 # logging shit
 # ---------------------------------------------------
-logging.getLogger('cfscrape').setLevel(logging.CRITICAL)
-
-# ------------------------------------------------------
-# Setup Browser (Whatever this is?)
-# ------------------------------------------------------
-# cm_path = "~/bin/cm"
-# down_dir = str(os.getcwd())
+# logging.getLogger('cfscrape').setLevel(logging.CRITICAL)
 
 # -----------------------------------------------------
 # Create cloudflare scraper isinstance
 # -----------------------------------------------------
 scraper = cfscrape.create_scraper()
 
-# -------------------------------------------------------
-# Setup Selenoid
-# -------------------------------------------------------
-capabilities = {
-    "browserName": "chrome",
-    "browserVersion": "96.0",
-    # "selenoid:options": {
-    #     "enableVNC": True,
-    #     "enableVideo": False,
-    #     "videoScreenSize": "1920x1080",
-    #     "hostsEntries": ["gunbroker.com:127.0.0.1"]
-    # }
-}
-
-driver = webdriver.Firefox(
-    # executable_path=ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-    executable_path="/usr/local/bin/geckodriver")
-
-# --------------------------------------------------------------
-# Browser and Selenium Options
-# --------------------------------------------------------------
-
-opts = Options()
-opts.add_argument(
-    '--user-agent=Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'  # noqa: E501
-)
-opts.add_argument("--headless")
-opts.add_argument("--no-sandbox")
-opts.add_argument("--lang=en-US")
-opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
-opts.add_argument("--dns-prefetch-disable")
-opts.set_capability("javascript.enabled", True)
-# prefs.set_capability("browser.download.folderList", 2)
-opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
-opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
-
+driver = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver")
 # For requests library
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}  # noqa: E501
-
-wait = WebDriverWait(driver, 67)
-driver.implicitly_wait(35)
-
-# ---------------------------------
-# Setup firefox_profile
-# ---------------------------------
-profile = webdriver.FirefoxProfile()
-profile._install_extension("buster_captcha_solver_for_humans-0.7.2-an+fx.xpi", unpack=False)
-profile.set_preference("security.fileuri.strict_origin_policy", False)
-profile.update_preferences()
-
+# headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}  # noqa: E501
 # -------------------------------------------
 # Setup retry
 # -------------------------------------------
+#  ____     ___  ______  ____   __ __ 
+# |    \   /  _]|      ||    \ |  |  |
+# |  D  ) /  [_ |      ||  D  )|  |  |
+# |    / |    _]|_|  |_||    / |  ~  |
+# |    \ |   [_   |  |  |    \ |___, |
+# |  .  \|     |  |  |  |  .  \|     |
+# |__|\_||_____|  |__|  |__|\_||____/ 
 
 def retry_on_timeout(exception):
     """ Return True if exception is Timeout """
@@ -159,9 +116,50 @@ def retry_on_StaleElement(exception):
 
 # @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+
+
 # =============================================================================
 # Begin
 # -----------------------------------------------------------------------------
+
+# ----------------------------------------------------------
+#    ____    __              ____       __  _
+#   / __/__ / /___ _____    / __ \___  / /_(_)__  ___  ___
+#  _\ \/ -_) __/ // / _ \  / /_/ / _ \/ __/ / _ \/ _ \(_-<
+# /___/\__/\__/\_,_/ .__/  \____/ .__/\__/_/\___/_//_/___/
+#                 /_/          /_/
+# ----------------------------------------------------------
+def setup_options():
+    opts = Options()
+    opts.add_argument(
+        '--user-agent=Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'  # noqa: E501
+    )
+    opts.add_argument("--headless")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--lang=en-US")
+    opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
+    opts.add_argument("--dns-prefetch-disable")
+    opts.set_capability("javascript.enabled", True)
+    # prefs.set_capability("browser.download.folderList", 2)
+    opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
+    opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
+    # opts.capabilities['proxy'] = {
+    #     "proxyType": "MANUAL",
+    #     "httpProxy": PROXY,
+    #     "ftpProxy": PROXY,
+    #     "sslProxy": PROXY
+    # }
+
+
+# ---------------------------------
+# Setup firefox_profile
+# ---------------------------------
+def setup_profile():
+    profile = webdriver.FirefoxProfile()
+    profile._install_extension("./buster_captcha_solver-1.3.1.xpi", unpack=False)
+    profile.set_preference("security.fileuri.strict_origin_policy", False)
+    profile.update_preferences()
+
 
 #    ___                      ____    __
 #   / _ \_______ __ ____ __  / __/__ / /___ _____
@@ -172,8 +170,29 @@ def retry_on_StaleElement(exception):
 def proxy_setup():
     rp = RegisteredProviders()
     rp.parse_providers()
-    proxy = rp.get_random_proxy()
-    return proxy
+    PROXY = rp.get_random_proxy()
+    opts = Options()
+    my_proxy = {
+        "proxyType": "MANUAL",
+        "httpProxy": PROXY,
+        "ftpProxy": PROXY,
+        "sslProxy": PROXY
+    }
+    opts.set_capability(name='proxy', value=my_proxy)
+
+
+# -------------------------------------------------
+#    ___      _                ____    __          
+#   / _ \____(_)  _____ ____  / __/__ / /___ _____ 
+#  / // / __/ / |/ / -_) __/ _\ \/ -_) __/ // / _ \
+# /____/_/ /_/|___/\__/_/   /___/\__/\__/\_,_/ .__/
+#                                           /_/    
+# -------------------------------------------------
+def driver_setup():
+    setup_profile()
+    proxy_setup()
+    setup_options()
+
 
 
 # __      __    _ _     ___     _
@@ -288,13 +307,6 @@ def do_captcha():
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 def login(username, password):
-    PROXY = proxy_setup()
-    opts.capabilities['proxy'] = {
-        "proxyType": "MANUAL",
-        "httpProxy": PROXY,
-        "ftpProxy": PROXY,
-        "sslProxy": PROXY
-    }
     driver.get(login_url)
     wait_between(a=MIN_RAND, b=MAX_RAND)
     cookie_message = driver.find_element(By.ID, "onetrust-accept-btn-handler")
@@ -316,7 +328,7 @@ def login(username, password):
         do_captcha()
     except StaleElementReferenceException:
         print("Caught Stale Captcha Element")
-    if cookie_message.is_displayed():
+    if cookie_message and cookie_message.is_displayed():
         cookie_message.click()
     driver.find_element(By.ID, "btnLogin").click()
     itemUrl = item_pattern + str(itemID)
@@ -331,7 +343,7 @@ def browser_close():
 
 
 def __main__():
-    # get_image_with_browser()
+    driver_setup()
     login(username, password)
     # browser_close()
 
