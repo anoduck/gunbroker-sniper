@@ -50,10 +50,19 @@ cloud deepgram{
 	]
 }
 cloud gunbroker{
+	node captcha [
+		Title: Recaptcha Redirect
+		===
+		Form: Inline JavaScript
+		---
+		Facility: Bot blocker
+	]
 	artifact item [
 	TITLE: Desired Item
 	===
-	Lang: Pew-Pew
+	Form: Listing Item
+	---
+	Facility: Target
 	]
 }
 cloud google {
@@ -67,8 +76,8 @@ cloud google {
 }
 dude --> GunBroker_Sniper : ""(1)""
 python --> geckodriver : ""(2)""
-geckodriver ~~> gunbroker : ""(3)""
-gunbroker ~~> recaptchav2 : ""(4)""
+geckodriver ~~> captcha : ""(3)""
+captcha ~~> recaptchav2 : ""(4)""
 recaptchav2 ~~> geckodriver : ""(5)""
 geckodriver ~~> captcha_buster : ""(6)""
 captcha_buster ~~> recaptchav2 : ""(7)""
@@ -78,6 +87,6 @@ python ~~> captcha_audio : ""(10)""
 captcha_audio ~~> deepgram : ""(11)""
 deepgram ~~> python : ""(12)""
 python ~~> geckodriver : ""(13)""
-geckodriver --> recaptchav2 : ""(14)""
+geckodriver --> captcha : ""(14)""
 geckodriver --> item : ""(15)""
 @enduml
