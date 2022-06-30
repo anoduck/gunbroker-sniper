@@ -142,8 +142,8 @@ def setup_options():
     opts.add_argument("--dns-prefetch-disable")
     opts.set_capability("javascript.enabled", True)
     # prefs.set_capability("browser.download.folderList", 2)
-    opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
-    opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
+    # opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
+    # opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
     # opts.capabilities['proxy'] = {
     #     "proxyType": "MANUAL",
     #     "httpProxy": PROXY,
@@ -157,7 +157,7 @@ def setup_options():
 # ---------------------------------
 def setup_profile():
     profile = webdriver.FirefoxProfile()
-    profile._install_extension("./buster_captcha_solver-1.3.1.xpi", unpack=False)
+    profile._install_extension(addon="./buster_captcha_solver-1.3.1.xpi", unpack=False)
     profile.set_preference("security.fileuri.strict_origin_policy", False)
     profile.update_preferences()
 
