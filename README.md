@@ -57,7 +57,7 @@ Just a few words of wisdom earned during my experience with the site.
 * If for some reason, the seller refuses to sell the gun to you after placing the winning bid, gunbroker will not do anything about it.
 
 
-### Diagram (Work in progress!)
+### Diagram
 
 ![Project Puml](https://www.plantuml.com/plantuml/svg/NOox3KCX303xJ94CaES-5QiOi0011lcZh1_IlkfEEkc26ehv78zNupGyqxEQRVq0b6RLuvNM1EILFNKepb5M9tahjqq2Wb-Og7RqtgxzlmRYVFW3)
 
