@@ -10,7 +10,7 @@ actor dude [
 	===
 	Lang: Grunts
 ]
-rectangle localhost{
+rectangle GunBroker_Sniper{
 	node python [
 		Title: Python 3.9
 		===
@@ -18,50 +18,66 @@ rectangle localhost{
 		---
 		Facility: Main source code
 	]
-	node geckodriver [
-		Title: geckodriver
+	stack geckodriver [
+		Title: Selenium | Geckodriver
 		===
-		Lang: Local system install
+		Form: Selenium Stack
 		---
-		Facility: Headless Webdriver
-	]
-	node selenium [
-		Title: Selenium
-		===
-		Type: Python Module
-		---
-		Facility: Translate directions to geckodriver
+		Facility: Webdriver
 	]
 	node captcha_buster [
 		Title: Buster: Captcha Solving for Humans
 		===
 		Form: Firefox Extension
 		---
-		Facility: Resolve Captcha Challenges
+		Facility: Downloads audio recaptcha challenges
+	]
+	file captcha_audio [
+		Title: Captcha audio
+		===
+		Form: Audio File
+		---
+		Facility: Recording of the audio captcha
+	]
+}
+cloud deepgram{
+	node deepgram[
+		Title: Deepgram Speech Recognition
+		===
+		Form: Remote API (Free)
+		---
+		Facility: Transcribes audio captcha
 	]
 }
 cloud gunbroker{
-	frame recaptchav2 [
-	Title: Recaptcha V2
-	===
-	Lang: JavaScript
-	---
-	Notes: Interfaces with Google's Recaptcha API
-	]
 	artifact item [
 	TITLE: Desired Item
 	===
 	Lang: Pew-Pew
 	]
 }
-'dude --> sel_view
-'sel_view ~~> geckodriver : ""Magic""
-dude --> python
-python ~~> selenium
-selenium --> geckodriver
-geckodriver ~~> item : ""HTTP Request""
-geckodriver ~~> captcha_buster
-captcha_buster <-- recaptchav2 : ""HTTP Response""
-
-
+cloud google {
+	node recaptchav2[
+		Title: Recaptcha V2
+	===
+	Lang: JavaScript
+	---
+	Notes: Interfaces with Google's Recaptcha API
+	]
+}
+dude --> GunBroker_Sniper : ""(1)""
+python --> geckodriver : ""(2)""
+geckodriver ~~> gunbroker : ""(3)""
+gunbroker ~~> recaptchav2 : ""(4)""
+recaptchav2 ~~> geckodriver : ""(5)""
+geckodriver ~~> captcha_buster : ""(6)""
+captcha_buster ~~> recaptchav2 : ""(7)""
+recaptchav2 ~~> captcha_audio : ""(8)""
+python --> deepgram : ""(9)""
+python ~~> captcha_audio : ""(10)""
+captcha_audio ~~> deepgram : ""(11)""
+deepgram ~~> python : ""(12)""
+python ~~> geckodriver : ""(13)""
+geckodriver --> recaptchav2 : ""(14)""
+geckodriver --> item : ""(15)""
 @enduml

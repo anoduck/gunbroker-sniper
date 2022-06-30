@@ -40,6 +40,7 @@ import requests
 import shutil
 import hashlib
 import urllib.parse
+import asyncio
 from furl import furl
 from retrying import retry
 from random import randint
@@ -179,6 +180,7 @@ def proxy_setup():
         "sslProxy": PROXY
     }
     opts.set_capability(name='proxy', value=my_proxy)
+    return PROXY
 
 
 # -------------------------------------------------
@@ -192,7 +194,6 @@ def driver_setup():
     setup_profile()
     proxy_setup()
     setup_options()
-
 
 
 # __      __    _ _     ___     _
@@ -275,6 +276,8 @@ def do_captcha():
     if challenge and challenge.is_displayed():
         driver.switch_to.default_content()
         driver.switch_to.frame(iframes[2])
+        # cap_response = cap_solver()
+        # print(cap_response)
         wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
         capt_btn = WebDriverWait(driver, 50).until(
             EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
