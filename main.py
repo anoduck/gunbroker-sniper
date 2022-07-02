@@ -37,6 +37,7 @@ import time
 import logging
 from threading import Thread
 import requests
+from requests.exceptions import Timeout
 import shutil
 import hashlib
 import urllib.parse
@@ -111,14 +112,20 @@ def retry_on_NoSuchElement(exception):
     """ Return True if exception is NoSuchElement """
     return isinstance(exception, NoSuchElementException)
 
+
 def retry_on_StaleElement(exception):
     """ Return True if exception is StaleElementReferenceException """
     return isinstance(exception, StaleElementReferenceException)
 
+
+def retry_requests_timeout(exception):
+    """Return True if RequestTimeoutException"""
+    return isinstance(exception, Timeout)
+
+
 # @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
-
-
+# @retry(retry_on_exception=retry_requests_timeout, stop_max_attempt_number=5)
 # =============================================================================
 # Begin
 # -----------------------------------------------------------------------------
@@ -141,6 +148,9 @@ def setup_options():
     opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
     opts.add_argument("--dns-prefetch-disable")
     opts.set_capability("javascript.enabled", True)
+    # opts.profile()
+    # opts.profile.add_extension("buster_captcha_solver-1.3.1.xpi")
+    opts.set_preference("security.fileuri.strict_origin_policy", False)
     # prefs.set_capability("browser.download.folderList", 2)
     # opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
     # opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
@@ -157,9 +167,10 @@ def setup_options():
 # ---------------------------------
 def setup_profile():
     profile = webdriver.FirefoxProfile()
-    profile._install_extension(addon="./buster_captcha_solver-1.3.1.xpi", unpack=False)
-    profile.set_preference("security.fileuri.strict_origin_policy", False)
-    profile.update_preferences()
+#     # profile._install_extension(addon="./buster_captcha_solver-1.3.1.xpi", unpack=False)
+    profile.add_extension("buster_captcha_solver-1.3.1.xpi")
+#     profile.set_preference("security.fileuri.strict_origin_policy", False)
+#     profile.update_preferences()
 
 
 #    ___                      ____    __
@@ -168,6 +179,7 @@ def setup_profile():
 # /_/  /_/  \___/_\_\\_, / /___/\__/\__/\_,_/ .__/
 #                   /___/                  /_/
 # -------------------------------------------------
+@retry(retry_on_exception=retry_requests_timeout, stop_max_attempt_number=5)
 def proxy_setup():
     rp = RegisteredProviders()
     rp.parse_providers()
@@ -272,32 +284,31 @@ def do_captcha():
     action = ActionChains(driver)
     human_like_mouse_move(action, check_box)
     # checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
-    challenge = driver.find_element(By.ID, "rc-imageselect")
-    if challenge and challenge.is_displayed():
-        driver.switch_to.default_content()
-        driver.switch_to.frame(iframes[2])
-        # cap_response = cap_solver()
-        # print(cap_response)
-        wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
-        capt_btn = WebDriverWait(driver, 50).until(
-            EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
+    # challenge = driver.find_element(By.ID, "rc-imageselect")
+    driver.switch_to.default_content()
+    driver.switch_to.frame(iframes[2])
+    # cap_response = cap_solver()
+    # print(cap_response)
+    wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
+    capt_btn = WebDriverWait(driver, 50).until(
+        EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
+    )
+    wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
+    capt_btn.click()
+    wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
+    try:
+        alert_handler = WebDriverWait(driver, 20).until(
+            EC.alert_is_present()
         )
-        wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
-        capt_btn.click()
-        wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
-        try:
-            alert_handler = WebDriverWait(driver, 20).until(
-                EC.alert_is_present()
-            )
-            alert = driver.switch_to.alert
-            wait_between(MIN_RAND, MAX_RAND)
-            alert.accept()
-            wait_between(MIN_RAND, MAX_RAND)
-            do_captcha()
-        except NoSuchElementException:
-            print("No Alert")
-        driver.implicitly_wait(5)
-        driver.switch_to.frame(iframes[0])
+        alert = driver.switch_to.alert
+        wait_between(MIN_RAND, MAX_RAND)
+        alert.accept()
+        wait_between(MIN_RAND, MAX_RAND)
+        do_captcha()
+    except NoSuchElementException:
+        print("No Alert")
+    driver.implicitly_wait(5)
+    driver.switch_to.frame(iframes[0])
 
 
 #   __             _
@@ -312,8 +323,12 @@ def do_captcha():
 def login(username, password):
     driver.get(login_url)
     wait_between(a=MIN_RAND, b=MAX_RAND)
-    cookie_message = driver.find_element(By.ID, "onetrust-accept-btn-handler")
-    cookie_message.click()
+    cookie_message = WebDriverWait(driver, 30).until(
+        EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
+    )
+    cookie_banner = driver.find_element(By.ID, "onetrust-accept-btn-handler")
+    if cookie_message and cookie_message.is_displayed():
+        cookie_message.click()
     try:
         username_input = driver.find_element(By.ID, "Username")
         username_input.send_keys(username)
@@ -325,14 +340,14 @@ def login(username, password):
     except NoSuchElementException:
         print("Password element not found")
     wait_between(a=MIN_RAND, b=MAX_RAND)
-    if cookie_message and cookie_message.is_displayed():
-        cookie_message.click()
+    if cookie_banner and cookie_banner.is_displayed():
+        cookie_banner.click()
     try:
         do_captcha()
     except StaleElementReferenceException:
         print("Caught Stale Captcha Element")
-    if cookie_message and cookie_message.is_displayed():
-        cookie_message.click()
+    if cookie_banner and cookie_banner.is_displayed():
+        cookie_banner.click()
     driver.find_element(By.ID, "btnLogin").click()
     itemUrl = item_pattern + str(itemID)
     driver.get(itemUrl)
