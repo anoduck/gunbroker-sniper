@@ -48,6 +48,7 @@ from random import randint
 from random import uniform
 from time import sleep
 import os
+import sys
 import cfscrape
 from proxy_randomizer import RegisteredProviders
 from recaptcha_buster_bypass import SyncMe
@@ -204,7 +205,7 @@ def proxy_setup():
 # -------------------------------------------------
 def driver_setup():
     setup_profile()
-    proxy_setup()
+    # proxy_setup()
     setup_options()
 
 
@@ -287,8 +288,6 @@ def do_captcha():
     # challenge = driver.find_element(By.ID, "rc-imageselect")
     driver.switch_to.default_content()
     driver.switch_to.frame(iframes[2])
-    # cap_response = cap_solver()
-    # print(cap_response)
     wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
     capt_btn = WebDriverWait(driver, 50).until(
         EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
@@ -326,9 +325,7 @@ def login(username, password):
     cookie_message = WebDriverWait(driver, 30).until(
         EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
     )
-    cookie_banner = driver.find_element(By.ID, "onetrust-accept-btn-handler")
-    if cookie_message and cookie_message.is_displayed():
-        cookie_message.click()
+    cookie_message.click()
     try:
         username_input = driver.find_element(By.ID, "Username")
         username_input.send_keys(username)
@@ -339,18 +336,33 @@ def login(username, password):
         password_input.send_keys(password)
     except NoSuchElementException:
         print("Password element not found")
+    login_btn = driver.find_element(By.ID, "btnLogin")
     wait_between(a=MIN_RAND, b=MAX_RAND)
-    if cookie_banner and cookie_banner.is_displayed():
-        cookie_banner.click()
     try:
-        do_captcha()
-    except StaleElementReferenceException:
-        print("Caught Stale Captcha Element")
-    if cookie_banner and cookie_banner.is_displayed():
-        cookie_banner.click()
-    driver.find_element(By.ID, "btnLogin").click()
-    itemUrl = item_pattern + str(itemID)
-    driver.get(itemUrl)
+        checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
+        if checkmark and checkmark.is_displayed():
+            try:
+                do_captcha()
+            except StaleElementReferenceException:
+                print("Caught Stale Captcha Element")
+    except:
+        login_btn.click()
+        item_url = item_pattern + str(itemID)
+        driver.get(item_url)
+    login_btn.click()
+    item_url = item_pattern + str(itemID)
+    driver.get(item_url)
+    
+
+def item_page():
+    item_url = item_pattern + str(itemID)
+    driver.get(item_url)
+    wait_between(a=MIN_RAND, b=MAX_RAND)
+    c_url = driver.current_url
+    if c_url == "https://www.gunbroker.com/Errors":
+        print("Item no longer exists")
+        sys.exit(0)
+    print("You have made it to your item")
 
 
 # ----------------------------------------------------

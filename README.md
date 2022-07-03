@@ -1,4 +1,18 @@
 ```text
+==================================================================================================
+ ▄▄▄▄▄▄▄▄▄▄▄ ▄▄▄▄▄▄▄▄▄▄▄ ▄         ▄ ▄                     ▄▄▄▄▄▄▄▄▄▄▄ ▄▄▄▄▄▄▄▄▄▄▄ ▄         ▄ ▄ 
+▐░░░░░░░░░░░▐░░░░░░░░░░░▐░▌       ▐░▐░▌                   ▐░░░░░░░░░░░▐░░░░░░░░░░░▐░▌       ▐░▐░▌
+▐░█▀▀▀▀▀▀▀█░▐░█▀▀▀▀▀▀▀▀▀▐░▌       ▐░▐░▌                   ▐░█▀▀▀▀▀▀▀█░▐░█▀▀▀▀▀▀▀▀▀▐░▌       ▐░▐░▌
+▐░▌       ▐░▐░▌         ▐░▌       ▐░▐░▌                   ▐░▌       ▐░▐░▌         ▐░▌       ▐░▐░▌
+▐░█▄▄▄▄▄▄▄█░▐░█▄▄▄▄▄▄▄▄▄▐░▌   ▄   ▐░▐░▌    ▄▄▄▄▄▄▄▄▄▄▄    ▐░█▄▄▄▄▄▄▄█░▐░█▄▄▄▄▄▄▄▄▄▐░▌   ▄   ▐░▐░▌
+▐░░░░░░░░░░░▐░░░░░░░░░░░▐░▌  ▐░▌  ▐░▐░▌   ▐░░░░░░░░░░░▌   ▐░░░░░░░░░░░▐░░░░░░░░░░░▐░▌  ▐░▌  ▐░▐░▌
+▐░█▀▀▀▀▀▀▀▀▀▐░█▀▀▀▀▀▀▀▀▀▐░▌ ▐░▌░▌ ▐░▐░▌    ▀▀▀▀▀▀▀▀▀▀▀    ▐░█▀▀▀▀▀▀▀▀▀▐░█▀▀▀▀▀▀▀▀▀▐░▌ ▐░▌░▌ ▐░▐░▌
+▐░▌         ▐░▌         ▐░▌▐░▌ ▐░▌▐░▌▀                    ▐░▌         ▐░▌         ▐░▌▐░▌ ▐░▌▐░▌▀ 
+▐░▌         ▐░█▄▄▄▄▄▄▄▄▄▐░▌░▌   ▐░▐░▌▄                    ▐░▌         ▐░█▄▄▄▄▄▄▄▄▄▐░▌░▌   ▐░▐░▌▄ 
+▐░▌         ▐░░░░░░░░░░░▐░░▌     ▐░░▐░▌                   ▐░▌         ▐░░░░░░░░░░░▐░░▌     ▐░░▐░▌
+ ▀           ▀▀▀▀▀▀▀▀▀▀▀ ▀▀       ▀▀ ▀                     ▀           ▀▀▀▀▀▀▀▀▀▀▀ ▀▀       ▀▀ ▀ 
+==================================================================================================
+
  ██████╗ ██╗   ██╗███╗   ██╗██████╗ ██████╗  ██████╗ ██╗  ██╗███████╗██████╗ 
 ██╔════╝ ██║   ██║████╗  ██║██╔══██╗██╔══██╗██╔═══██╗██║ ██╔╝██╔════╝██╔══██╗
 ██║  ███╗██║   ██║██╔██╗ ██║██████╔╝██████╔╝██║   ██║█████╔╝ █████╗  ██████╔╝
@@ -15,8 +29,9 @@
  \______/ |__/  |__/|__/| $$____/  \_______/|__/      
                         | $$                          
                         | $$                          
-                        |__/                                       
+                        |__/
 ```
+
 
 ## gunbroker-sniper
 A sniper for gunbroker auctions
@@ -27,17 +42,13 @@ Originally intended to be based off of a sniper for EBay, this project has veere
 is the obstacles present in the modern webframework prevent unwanted automation from occurring. Implementations of cloudflare
 and ReCaptcha have made the job of automation difficult to accomplish. As such, the original sniper was unsuited for the task.
 
-### Method
+### Captcha Handling
 
-The current release of captcha buster for firefox automatically selects the audio captcha for the user and downloads the file
-to make solving the captcha easier. This process provides a prime opportunity to use a new relatively free transcription service
-that will allow the uploading and transcription of the audio file, returning a json containing the valid response to captcha.
-This can be automated programmatically, thus mitigating recaptcha from blocking the sniper, and preventing it from working.
-For a more confusing graphical representation of this process, please see the included plant uml diagram.
+__The current release of captcha buster is currently successfully handling recaptchas for the project.__
 
 ### Setup
 
-Below offers an abridged inconclusive overview of what is required to  configure your system and run the sniper.
+Below offers an abridged inconclusive overview of what is required to configure your system and run the sniper.
 
 #### Requirements
 
@@ -49,6 +60,12 @@ In order to set up this application there are several requirements that will be 
 * required dependencies installed
 * poetry
 
+
+### Diagram of proposed captcha bypass method
+
+![Project Puml](https://www.plantuml.com/plantuml/svg/NOox3KCX303xJ94CaES-5QiOi0011lcZh1_IlkfEEkc26ehv78zNupGyqxEQRVq0b6RLuvNM1EILFNKepb5M9tahjqq2Wb-Og7RqtgxzlmRYVFW3)
+
+
 ### Bidding on GunBroker
 
 Just a few words of wisdom earned during my experience with the site. 
@@ -58,8 +75,16 @@ Just a few words of wisdom earned during my experience with the site.
 * The seller's word does not have to be honored.
 * If for some reason, the seller refuses to sell the gun to you after placing the winning bid, gunbroker will not do anything about it.
 
+### TODO:
 
-### Diagram
-
-![Project Puml](https://www.plantuml.com/plantuml/svg/NOox3KCX303xJ94CaES-5QiOi0011lcZh1_IlkfEEkc26ehv78zNupGyqxEQRVq0b6RLuvNM1EILFNKepb5M9tahjqq2Wb-Og7RqtgxzlmRYVFW3)
-
+- [ ] Sync Time Remaining
+- [ ] Save Cookie
+- [ ] Saving item information upon execution
+- [ ] Retrieving saved item information
+- [ ] Go truly headless
+- [ ] Sleeper Cell before snipe
+- [ ] Item Stalking before snipe 
+- [ ] Price Settings 
+- [ ] reporting result of snipe
+- [ ] Bid and win on an item
+- [ ] Cleanup repository

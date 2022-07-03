@@ -1,0 +1,10 @@
+@startuml
+!theme cerulean-outline
+title GunBroker Sniper
+header A sniper for gunbroker auctions
+footer shooting for the smarter
+
+start
+:First Time Login;
+stop
+@enduml
