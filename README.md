@@ -75,6 +75,11 @@ Just a few words of wisdom earned during my experience with the site.
 * The seller's word does not have to be honored.
 * If for some reason, the seller refuses to sell the gun to you after placing the winning bid, gunbroker will not do anything about it.
 
+### GunBroker's 15min rule
+
+Although this rule is purposefully designed to counteract sniping, it does not counteract automation of the bidding process all together.
+[15 min rule](https://support.gunbroker.com/hc/en-us/articles/221437107-15-Minute-Rule)
+
 ### TODO:
 
 - [ ] Sync Time Remaining
@@ -88,3 +93,4 @@ Just a few words of wisdom earned during my experience with the site.
 - [ ] reporting result of snipe
 - [ ] Bid and win on an item
 - [ ] Cleanup repository
+- [ ] Mitigate the 15min rule

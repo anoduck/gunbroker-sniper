@@ -22,36 +22,36 @@ import numpy as np
 import scipy.interpolate as si
 
 from selenium import webdriver
-from selenium.webdriver import Firefox
+# from selenium.webdriver import Firefox
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+# from selenium.webdriver.firefox.service import Service
+# from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
-import time
-import logging
-from threading import Thread
-import requests
+import crono
+# import logging
+# from threading import Thread
+# import requests
 from requests.exceptions import Timeout
-import shutil
-import hashlib
-import urllib.parse
-import asyncio
-from furl import furl
+# import shutil
+# import hashlib
+# import urllib.parse
+# import asyncio
+# from furl import furl
 from retrying import retry
-from random import randint
+# from random import randint
 from random import uniform
 from time import sleep
 import os
 import sys
 import cfscrape
 from proxy_randomizer import RegisteredProviders
-from recaptcha_buster_bypass import SyncMe
+# from recaptcha_buster_bypass import SyncMe
 
 # from configparser import ConfigParser
 
@@ -350,11 +350,15 @@ def login(username, password):
         item_url = item_pattern + str(itemID)
         driver.get(item_url)
     login_btn.click()
-    item_url = item_pattern + str(itemID)
-    driver.get(item_url)
-    
 
-def item_page():
+
+# ----------------------------------------------
+#   ___  ___ _____ ___    ___ _____ ___ __  __
+#  / __|/ _ \_   _/ _ \  |_ _|_   _| __|  \/  |
+# | (_ | (_) || || (_) |  | |  | | | _|| |\/| |
+#  \___|\___/ |_| \___/  |___| |_| |___|_|  |_|
+# ----------------------------------------------
+def goto_item():
     item_url = item_pattern + str(itemID)
     driver.get(item_url)
     wait_between(a=MIN_RAND, b=MAX_RAND)
@@ -363,6 +367,23 @@ def item_page():
         print("Item no longer exists")
         sys.exit(0)
     print("You have made it to your item")
+
+
+# --------------------------------------
+#    ___           ____     ___
+#   / _ |_______ _/  ____  / ____
+#  / __ / __/ _ `_/ // _ \/ _/ _ \
+# /_/ |_\__/\_, /___/_//_/_/ \___/
+#            /_/
+# --------------------------------------
+def info_acq():
+    goto_item()
+    min_bid = driver.find_element(By.ID, "StartingBid")
+    end_time = driver.find_element(By.ID, "EndingDate")
+
+
+def cron_man():
+    crono.on(end_time)
 
 
 # ----------------------------------------------------
@@ -375,6 +396,7 @@ def browser_close():
 def __main__():
     driver_setup()
     login(username, password)
+    goto_item()
     # browser_close()
 
 

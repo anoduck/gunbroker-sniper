@@ -1,4 +1,4 @@
-#:set filetype=org
+#vi :set filetype=org
 #+TITLE: GunBroker Snipe
 #+DATE: 2022-07-03
 #+PROJECT: GunBroker Sniper
@@ -23,3 +23,4 @@
 ** TODO Setup price options 
 ** TODO Cleanup Repo
 ** TODO Win a bid on something for research
+** TODO [#A] 
