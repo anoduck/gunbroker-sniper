@@ -51,7 +51,7 @@ import os
 import sys
 import cfscrape
 from proxy_randomizer import RegisteredProviders
-# from recaptcha_buster_bypass import SyncMe
+from deepgram import deep_trans
 
 # from configparser import ConfigParser
 
@@ -310,6 +310,15 @@ def do_captcha():
     driver.switch_to.frame(iframes[0])
 
 
+#     _
+#  __| |___ ___ _ __  __ _ _ _ __ _ _ __
+# / _` / -_) -_) '_ \/ _` | '_/ _` | '  \
+# \__,_\___\___| .__/\__, |_| \__,_|_|_|_|
+#              |_|   |___
+def resolve_captcha():
+	deep_trans()
+
+		
 #   __             _
 #  / /  ___  ___ _(_)__
 # / /__/ _ \/ _ `/ / _ \
