@@ -36,6 +36,8 @@
 ## gunbroker-sniper
 A sniper for gunbroker auctions
 
+*Back under active development after siesta*
+
 ### Original Intentions
 
 Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for this 
@@ -84,13 +86,13 @@ Although this rule is purposefully designed to counteract sniping, it does not c
 
 - [ ] Sync Time Remaining
 - [ ] Save Cookie
-- [ ] Saving item information upon execution
-- [ ] Retrieving saved item information
+- [x] Saving item information upon execution
+- [x] Retrieving saved item information
 - [ ] Go truly headless
 - [ ] Sleeper Cell before snipe
 - [ ] Item Stalking before snipe 
 - [ ] Price Settings 
-- [ ] reporting result of snipe
+- [x] reporting result of snipe
 - [ ] Bid and win on an item
 - [ ] Cleanup repository
-- [ ] Mitigate the 15min rule
+- [x] Mitigate the 15min rule

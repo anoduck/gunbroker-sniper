@@ -1,5 +1,24 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2022  anoduck
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # =======================================================================================================================================
 #   /$$$$$$                      /$$$$$$$                      /$$
 #  /$$__  $$                    | $$__  $$                    | $$
@@ -33,7 +52,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
-import crono
+# import crono
 # import logging
 # from threading import Thread
 # import requests
@@ -44,39 +63,50 @@ from requests.exceptions import Timeout
 # import asyncio
 # from furl import furl
 from retrying import retry
-# from random import randint
+from random import randint
 from random import uniform
 from time import sleep
 import os
 import sys
+# import cfscrape
+# from proxy_randomizer import RegisteredProviders
+import configparser
+
+from configobj import ConfigObj
+import art
+import time
+import click
+import tomlkit
 import cfscrape
-from proxy_randomizer import RegisteredProviders
-from deepgram import deep_trans
 
-# from configparser import ConfigParser
-
+sys.path.append(os.path.expanduser('~/.local/lib/python3.10'))
 # =======================================================
 # Variables
 # =======================================================
-username = os.getenv('USERNAME')
-password = os.getenv('PASSWORD')
-
-itemID = os.getenv('ITEMID')
-
-DOMAIN = os.getenv('DOMAIN')
-SITEKEY = os.getenv('SITEKEY')
-
-# Item Url
-item_pattern = "https://www.gunbroker.com/item/"
-
-# login url
+item_pattern = 'https://www.gunbroker.com/item/'
 login_url = "https://www.gunbroker.com/user/login"
-
-# Randomization Related
-MIN_RAND = 0.64
-MAX_RAND = 1.27
-LONG_MIN_RAND = 4.78
-LONG_MAX_RAND = 11.1
+min_ran = 15.3
+max_ran = 37.1
+# LONG_min_ran = 4.78
+# LONG_max_rand = 11.1
+item_file = os.path.join(os.curdir, 'item_store.toml')
+# -------------------------------------------------------
+cfg = """
+[options]
+username = string(default=os.getenv('USERNAME'))
+password = string(default=os.getenv('PASSWORD'))
+itemID = string(default=os.getenv('ITEMID'))
+[domain]
+DOMAIN = string(default=os.getenv('DOMAIN'))
+SITEKEY = string(default=os.getenv('SITEKEY'))
+item_pattern = string(default='https://www.gunbroker.com/item/')
+login_url = string(default="https://www.gunbroker.com/user/login")
+[rand]
+min_ran = integer(0, 1, default=0.64)
+max_rand = integer(0, 2, default=1.27)
+LONG_min_ran = integer(0, 10, default=4.78)
+LONG_max_rand = integer(0, 20, default=11.1)
+"""
 
 # wait = WebDriverWait(driver, 67)
 # driver.implicitly_wait(35)
@@ -277,32 +307,32 @@ def do_captcha():
     iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
     driver.switch_to.frame(iframes[0])
     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
-    wait_between(MIN_RAND, MAX_RAND)
+    wait_between(min_ran, max_rand)
     action = ActionChains(driver)
-    human_like_mouse_move(action, check_box)
+    # human_like_mouse_move(action, check_box)
     check_box.click()
-    wait_between(MIN_RAND, MAX_RAND)
+    wait_between(min_ran, max_rand)
     action = ActionChains(driver)
-    human_like_mouse_move(action, check_box)
+    # human_like_mouse_move(action, check_box)
     # checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
     # challenge = driver.find_element(By.ID, "rc-imageselect")
     driver.switch_to.default_content()
     driver.switch_to.frame(iframes[2])
-    wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
+    wait_between(LONG_min_ran, LONG_max_rand)
     capt_btn = WebDriverWait(driver, 50).until(
         EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
     )
-    wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
+    wait_between(LONG_min_ran, LONG_max_rand)
     capt_btn.click()
-    wait_between(LONG_MIN_RAND, LONG_MAX_RAND)
+    wait_between(LONG_min_ran, LONG_max_rand)
     try:
         alert_handler = WebDriverWait(driver, 20).until(
             EC.alert_is_present()
         )
         alert = driver.switch_to.alert
-        wait_between(MIN_RAND, MAX_RAND)
+        wait_between(min_ran, max_rand)
         alert.accept()
-        wait_between(MIN_RAND, MAX_RAND)
+        wait_between(a=min_ran, b=max_rand)
         do_captcha()
     except NoSuchElementException:
         print("No Alert")
@@ -315,8 +345,8 @@ def do_captcha():
 # / _` / -_) -_) '_ \/ _` | '_/ _` | '  \
 # \__,_\___\___| .__/\__, |_| \__,_|_|_|_|
 #              |_|   |___
-def resolve_captcha():
-	deep_trans()
+# def resolve_captcha():
+	# deep_trans()
 
 		
 #   __             _
@@ -328,37 +358,62 @@ def resolve_captcha():
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
-def login(username, password):
+def login(username, password, itemid):
     driver.get(login_url)
-    wait_between(a=MIN_RAND, b=MAX_RAND)
-    cookie_message = WebDriverWait(driver, 30).until(
+    wait_between(a=min_ran, b=max_ran)
+    over_18 = WebDriverWait(driver, 30).until(
+        EC.element_to_be_clickable((By.ID, "ltkpopup-thanks"))
+        )
+    if over_18 and over_18.is_displayed():
+        over_18.click()
+    cookie_message = WebDriverWait(driver, 34).until(
         EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
     )
-    cookie_message.click()
+    if cookie_message and cookie_message.is_displayed():
+        cookie_message.click()
+    time.sleep(randint(a=min_ran, b=max_ran))
     try:
         username_input = driver.find_element(By.ID, "Username")
-        username_input.send_keys(username)
+        if username_input and username_input.is_displayed():
+            username_input.send_keys(username)
     except NoSuchElementException:
         print("Login element not found")
     try:
         password_input = driver.find_element(By.ID, "Password")
-        password_input.send_keys(password)
+        if password_input and password_input.is_displayed():
+            password_input.send_keys(password)
     except NoSuchElementException:
         print("Password element not found")
     login_btn = driver.find_element(By.ID, "btnLogin")
-    wait_between(a=MIN_RAND, b=MAX_RAND)
-    try:
-        checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
-        if checkmark and checkmark.is_displayed():
-            try:
-                do_captcha()
-            except StaleElementReferenceException:
-                print("Caught Stale Captcha Element")
-    except:
+    wait_between(a=min_ran, b=max_ran)
+    checkmark = driver.find_element(
+        By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
+    if checkmark and checkmark.is_displayed():
+        try:
+            do_captcha()
+        except StaleElementReferenceException:
+            print("Caught Stale Captcha Element")
+    else:
         login_btn.click()
-        item_url = item_pattern + str(itemID)
+        item_url = item_pattern + str(itemid)
         driver.get(item_url)
-    login_btn.click()
+    return True
+
+
+def write_toml(itemid, start_price, end_time):
+    with tomlkit as tk:
+        store = tk.document(item_file)
+        store.add(tk.comment('Do not edit this file by hand'))
+        store.add(tk.comment('This file stores data collected '
+                             ' from scraping the item'))
+        store.add(tk.nl())
+        store.add("title", "GunBroker Sniper: Item Storage")
+        item = tk.table()
+        item.add("itemid", itemid)
+        item.add("Starting Price", start_price)
+        item.add("Ending Time", start_price)
+        store.add("item", item)
+    return True
 
 
 # ----------------------------------------------
@@ -367,15 +422,30 @@ def login(username, password):
 # | (_ | (_) || || (_) |  | |  | | | _|| |\/| |
 #  \___|\___/ |_| \___/  |___| |_| |___|_|  |_|
 # ----------------------------------------------
-def goto_item():
+def goto_item(itemid):
     item_url = item_pattern + str(itemID)
     driver.get(item_url)
-    wait_between(a=MIN_RAND, b=MAX_RAND)
+    wait_between(a=min_ran, b=max_ran)
     c_url = driver.current_url
     if c_url == "https://www.gunbroker.com/Errors":
         print("Item no longer exists")
         sys.exit(0)
-    print("You have made it to your item")
+    more_outta = '/html/body/div[11]/div/div/div/div/div[1]/a'
+    get_more = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.xpath, more_outta))
+        )
+    if get_more and get_more.is_displayed():
+        get_more.click()
+    bid_element = driver.find_element(By.ID, "StartingBid")
+    start_price = bid_element.text()
+    end_element = driver.find_element(By.ID, "EndingDate")
+    end_time = end_element.text()
+    toml_write = write_toml(itemid, start_price, end_time)
+    if toml_write:
+        print("Successfully added item to store")
+    else:
+        print("Whoops!")
+    return True
 
 
 # --------------------------------------
@@ -391,8 +461,8 @@ def info_acq():
     end_time = driver.find_element(By.ID, "EndingDate")
 
 
-def cron_man():
-    crono.on(end_time)
+# def cron_man():
+    # crono.on(end_time)
 
 
 # ----------------------------------------------------
@@ -402,10 +472,35 @@ def browser_close():
     # driver.quit()
 
 
+
 def __main__():
+    art.tprint("GunBroker Sniper", font="rnd-medium")
+    conf_file = os.path.join(os.curdir, 'config.ini')
+    # conf_path = os.path.realpath(conf_file)
+    config = configparser.ConfigParser()
+    config.read(conf_file)
+    username = config['default']['username']
+    password = config['default']['password']
+    itemid = config['default']['itemid']
+    # spec = cfg.split("\n")
+    # if not os.path.isfile(conf_file):
+    #     config = ConfigObj(conf_file, configspec=spec)
+    #     config.filename = conf_file
+    #     validator = ConfigObj.validate
+    #     config.validate(validator, copy=True)
+    #     config.write()
+    #     print("Configuration file written to " + conf_path)
+    #     sys.exit()
+    # else:
+    #     config = ConfigObj(conf_file, configspec=spec)
     driver_setup()
-    login(username, password)
-    goto_item()
+    logged_in = login(username, password, itemid)
+    if logged_in:
+        got_item = goto_item(itemid)
+        if got_item:
+            print('Hooray it worked!')
+    else:
+        print("Whoops!")
     # browser_close()
 
 
