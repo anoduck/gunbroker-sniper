@@ -37,44 +37,30 @@
 # ╚══════╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝
 # ========================================================================================================================================
 
-# import numpy as np
-# import scipy.interpolate as si
-
 from selenium import webdriver
-# from selenium.webdriver import Firefox
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
-# from selenium.webdriver.firefox.service import Service
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
-# import crono
-# import logging
-# from threading import Thread
-# import requests
+import crono
 from requests.exceptions import Timeout
-# import shutil
-# import hashlib
-# import urllib.parse
-# import asyncio
-# from furl import furl
 from retrying import retry
 from random import randint
 from random import uniform
 from time import sleep
 import os
 import sys
-# import cfscrape
-# from proxy_randomizer import RegisteredProviders
+import re
 import configparser
+import argparse
 
 from configobj import ConfigObj
 import art
 import time
+from datetime import date, datetime
 import click
 import tomlkit
 import cfscrape
@@ -85,28 +71,28 @@ sys.path.append(os.path.expanduser('~/.local/lib/python3.10'))
 # =======================================================
 item_pattern = 'https://www.gunbroker.com/item/'
 login_url = "https://www.gunbroker.com/user/login"
-min_ran = 15.3
-max_ran = 37.1
+min_ran = int(15)
+max_ran = int(37)
 # LONG_min_ran = 4.78
 # LONG_max_rand = 11.1
 item_file = os.path.join(os.curdir, 'item_store.toml')
 # -------------------------------------------------------
-cfg = """
-[options]
-username = string(default=os.getenv('USERNAME'))
-password = string(default=os.getenv('PASSWORD'))
-itemID = string(default=os.getenv('ITEMID'))
-[domain]
-DOMAIN = string(default=os.getenv('DOMAIN'))
-SITEKEY = string(default=os.getenv('SITEKEY'))
-item_pattern = string(default='https://www.gunbroker.com/item/')
-login_url = string(default="https://www.gunbroker.com/user/login")
-[rand]
-min_ran = integer(0, 1, default=0.64)
-max_rand = integer(0, 2, default=1.27)
-LONG_min_ran = integer(0, 10, default=4.78)
-LONG_max_rand = integer(0, 20, default=11.1)
-"""
+# cfg = """
+# [options]
+# username = string(default=os.getenv('USERNAME'))
+# password = string(default=os.getenv('PASSWORD'))
+# itemID = string(default=os.getenv('ITEMID'))
+# [domain]
+# DOMAIN = string(default=os.getenv('DOMAIN'))
+# SITEKEY = string(default=os.getenv('SITEKEY'))
+# item_pattern = string(default='https://www.gunbroker.com/item/')
+# login_url = string(default="https://www.gunbroker.com/user/login")
+# [rand]
+# min_ran = integer(0, 1, default=0.64)
+# max_rand = integer(0, 2, default=1.27)
+# LONG_min_ran = integer(0, 10, default=4.78)
+# LONG_max_rand = integer(0, 20, default=11.1)
+# """
 
 # wait = WebDriverWait(driver, 67)
 # driver.implicitly_wait(35)
@@ -120,7 +106,6 @@ LONG_max_rand = integer(0, 20, default=11.1)
 # -----------------------------------------------------
 scraper = cfscrape.create_scraper()
 
-driver = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver")
 # For requests library
 # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}  # noqa: E501
 # -------------------------------------------
@@ -161,69 +146,26 @@ def retry_requests_timeout(exception):
 # Begin
 # -----------------------------------------------------------------------------
 
-# ----------------------------------------------------------
-#    ____    __              ____       __  _
-#   / __/__ / /___ _____    / __ \___  / /_(_)__  ___  ___
-#  _\ \/ -_) __/ // / _ \  / /_/ / _ \/ __/ / _ \/ _ \(_-<
-# /___/\__/\__/\_,_/ .__/  \____/ .__/\__/_/\___/_//_/___/
-#                 /_/          /_/
-# ----------------------------------------------------------
-def setup_options():
-    opts = Options()
-    opts.add_argument(
-        '--user-agent=Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'  # noqa: E501
-    )
-    opts.add_argument("--headless")
-    opts.add_argument("--no-sandbox")
-    opts.add_argument("--lang=en-US")
-    opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
-    opts.add_argument("--dns-prefetch-disable")
-    opts.set_capability("javascript.enabled", True)
-    # opts.profile()
-    # opts.profile.add_extension("buster_captcha_solver-1.3.1.xpi")
-    opts.set_preference("security.fileuri.strict_origin_policy", False)
-    # prefs.set_capability("browser.download.folderList", 2)
-    # opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "image/jpeg")
-    # opts.set_capability("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream")
-    # opts.capabilities['proxy'] = {
-    #     "proxyType": "MANUAL",
-    #     "httpProxy": PROXY,
-    #     "ftpProxy": PROXY,
-    #     "sslProxy": PROXY
-    # }
-
-
-# ---------------------------------
-# Setup firefox_profile
-# ---------------------------------
-def setup_profile():
-    profile = webdriver.FirefoxProfile()
-#     # profile._install_extension(addon="./buster_captcha_solver-1.3.1.xpi", unpack=False)
-    profile.add_extension("buster_captcha_solver-1.3.1.xpi")
-#     profile.set_preference("security.fileuri.strict_origin_policy", False)
-#     profile.update_preferences()
-
-
 #    ___                      ____    __
 #   / _ \_______ __ ____ __  / __/__ / /___ _____
 #  / ___/ __/ _ \\ \ / // / _\ \/ -_) __/ // / _ \
 # /_/  /_/  \___/_\_\\_, / /___/\__/\__/\_,_/ .__/
 #                   /___/                  /_/
 # -------------------------------------------------
-@retry(retry_on_exception=retry_requests_timeout, stop_max_attempt_number=5)
-def proxy_setup():
-    rp = RegisteredProviders()
-    rp.parse_providers()
-    PROXY = rp.get_random_proxy()
-    opts = Options()
-    my_proxy = {
-        "proxyType": "MANUAL",
-        "httpProxy": PROXY,
-        "ftpProxy": PROXY,
-        "sslProxy": PROXY
-    }
-    opts.set_capability(name='proxy', value=my_proxy)
-    return PROXY
+# @retry(retry_on_exception=retry_requests_timeout, stop_max_attempt_number=5)
+# def proxy_setup():
+#     rp = RegisteredProviders()
+#     rp.parse_providers()
+#     PROXY = rp.get_random_proxy()
+#     opts = Options()
+#     my_proxy = {
+#         "proxyType": "MANUAL",
+#         "httpProxy": PROXY,
+#         "ftpProxy": PROXY,
+#         "sslProxy": PROXY
+#     }
+#     opts.set_capability(name='proxy', value=my_proxy)
+#     return PROXY
 
 
 # -------------------------------------------------
@@ -234,9 +176,21 @@ def proxy_setup():
 #                                           /_/    
 # -------------------------------------------------
 def driver_setup():
-    setup_profile()
-    # proxy_setup()
-    setup_options()
+    profile = webdriver.FirefoxProfile()
+    profile.add_extension("buster_captcha_solver-1.3.1.xpi")
+    opts = Options()
+    opts.add_argument(
+        '--user-agent=Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'  # noqa: E501
+    )
+    opts.add_argument("--headless")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--lang=en-US")
+    opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
+    opts.add_argument("--dns-prefetch-disable")
+    opts.set_capability("javascript.enabled", True)
+    opts.set_preference("security.fileuri.strict_origin_policy", False)
+    driver = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver")
+    return driver
 
 
 # __      __    _ _     ___     _
@@ -244,54 +198,9 @@ def driver_setup():
 #  \ \/\/ / _` | |  _| | _ Y -_)  _\ V  V / -_) -_) ' \
 #   \_/\_/\__,_|_|\__| |___|___|\__|\_/\_/\___\___|_||_|
 # ------------------------------------------------------
-def wait_between(a, b):
-    rand = uniform(a, b)
-    sleep(rand)
-
-
-#   __  ___                    __  ___                            __
-#  /  |/  /__  __ _____ ___   /  |/  /__ _  _____ __ _  ___ ___  / /____
-# / /|_/ / _ \/ // (_-</ -_) / /|_/ / _ \ |/ / -_)  ' \/ -_) _ \/ __(_-<
-#/_/  /_/\___/\_,_/___/\__/ /_/  /_/\___/___/\__/_/_/_/\__/_//_/\__/___/
-# -----------------------------------------------------------------------
-# Using B-spline for simulate humane like mouse movments
-# def human_like_mouse_move(action, start_element):
-#     points = [[6, 2], [3, 2], [0, 0], [0, 2]];
-#     points = np.array(points)
-#     x = points[:, 0]
-#     y = points[:, 1]
-
-#     t = range(len(points))
-#     ipl_t = np.linspace(0.0, len(points) - 1, 100)
-
-#     x_tup = si.splrep(t, x, k=1)
-#     y_tup = si.splrep(t, y, k=1)
-
-#     x_list = list(x_tup)
-#     xl = x.tolist()
-#     x_list[1] = xl + [0.0, 0.0, 0.0, 0.0]
-
-#     y_list = list(y_tup)
-#     yl = y.tolist()
-#     y_list[1] = yl + [0.0, 0.0, 0.0, 0.0]
-
-#     x_i = si.splev(ipl_t, x_list)
-#     y_i = si.splev(ipl_t, y_list)
-
-#     startElement = start_element
-
-#     action.move_to_element(startElement);
-#     action.perform();
-
-#     c = 5  # change it for more move
-#     i = 0
-#     for mouse_x, mouse_y in zip(x_i, y_i):
-#         action.move_by_offset(mouse_x, mouse_y);
-#         action.perform();
-#         # self.log("Move mouse to, %s ,%s" % (mouse_x, mouse_y))
-#         i += 1
-#         if i == c:
-#             break;
+def wait():
+    wait_time = randint(min_ran, max_ran)
+    sleep(wait_time)
 
 
 #  _____          __      __
@@ -302,53 +211,44 @@ def wait_between(a, b):
 # -----------------------------------
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
-def do_captcha():
+def do_captcha(driver):
     driver.switch_to.default_content()
     iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
     driver.switch_to.frame(iframes[0])
     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
-    wait_between(min_ran, max_rand)
+    wait()
     action = ActionChains(driver)
     # human_like_mouse_move(action, check_box)
     check_box.click()
-    wait_between(min_ran, max_rand)
+    wait()
     action = ActionChains(driver)
     # human_like_mouse_move(action, check_box)
     # checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
     # challenge = driver.find_element(By.ID, "rc-imageselect")
     driver.switch_to.default_content()
     driver.switch_to.frame(iframes[2])
-    wait_between(LONG_min_ran, LONG_max_rand)
+    wait()
     capt_btn = WebDriverWait(driver, 50).until(
         EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
     )
-    wait_between(LONG_min_ran, LONG_max_rand)
+    wait()
     capt_btn.click()
-    wait_between(LONG_min_ran, LONG_max_rand)
+    wait()
     try:
         alert_handler = WebDriverWait(driver, 20).until(
             EC.alert_is_present()
         )
         alert = driver.switch_to.alert
-        wait_between(min_ran, max_rand)
+        wait()
         alert.accept()
-        wait_between(a=min_ran, b=max_rand)
-        do_captcha()
+        wait()
+        do_captcha(driver)
     except NoSuchElementException:
         print("No Alert")
     driver.implicitly_wait(5)
     driver.switch_to.frame(iframes[0])
 
 
-#     _
-#  __| |___ ___ _ __  __ _ _ _ __ _ _ __
-# / _` / -_) -_) '_ \/ _` | '_/ _` | '  \
-# \__,_\___\___| .__/\__, |_| \__,_|_|_|_|
-#              |_|   |___
-# def resolve_captcha():
-	# deep_trans()
-
-		
 #   __             _
 #  / /  ___  ___ _(_)__
 # / /__/ _ \/ _ `/ / _ \
@@ -358,9 +258,9 @@ def do_captcha():
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
 @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
-def login(username, password, itemid):
+def login(driver, username, password, itemid):
     driver.get(login_url)
-    wait_between(a=min_ran, b=max_ran)
+    # wait()
     over_18 = WebDriverWait(driver, 30).until(
         EC.element_to_be_clickable((By.ID, "ltkpopup-thanks"))
         )
@@ -369,11 +269,12 @@ def login(username, password, itemid):
     cookie_message = WebDriverWait(driver, 34).until(
         EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
     )
+    time.sleep(5)
     if cookie_message and cookie_message.is_displayed():
         cookie_message.click()
-    time.sleep(randint(a=min_ran, b=max_ran))
     try:
-        username_input = driver.find_element(By.ID, "Username")
+        username_input = WebDriverWait(driver, 30).until(
+            EC.visibility_of_element_located((By.ID, "Username")))
         if username_input and username_input.is_displayed():
             username_input.send_keys(username)
     except NoSuchElementException:
@@ -384,35 +285,75 @@ def login(username, password, itemid):
             password_input.send_keys(password)
     except NoSuchElementException:
         print("Password element not found")
-    login_btn = driver.find_element(By.ID, "btnLogin")
-    wait_between(a=min_ran, b=max_ran)
     checkmark = driver.find_element(
         By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
     if checkmark and checkmark.is_displayed():
         try:
-            do_captcha()
+            do_captcha(driver)
         except StaleElementReferenceException:
             print("Caught Stale Captcha Element")
-    else:
+    time.sleep(3)
+    login_btn = WebDriverWait(driver, 30).until(
+        EC.element_to_be_clickable((By.ID, "btnLogin")))
+    if login_btn and login_btn.is_visible():
+        time.sleep(3)
         login_btn.click()
         item_url = item_pattern + str(itemid)
         driver.get(item_url)
-    return True
+        return True
 
 
+# -------------------------------------------
+#   ___     _     ___       _
+#  / __|___| |_  |   \ __ _| |_ ___
+# | (_ / -_)  _| | |) / _` |  _/ -_)
+#  \___\___|\__| |___/\__,_|\__\___|
+# --------------------------------------------
+# strformat = %m/%d/%Y %I:%M %p
+# --------------------------------------------
+def get_date(end_time):
+    date_num = re.findall(r'\d+', end_time)
+    dnum_list = list(map(int, date_num))
+    dn_yr = dnum_list[2]
+    dn_mon = dnum_list[0]
+    dn_day = dnum_list[1]
+    dn_hr = dnum_list[3]
+    dn_min = dnum_list[4]
+    da_pm = re.findall(r'PM', end_time)
+    if da_pm:
+        dn_hr = int(dn_hr) + 12
+    time_out = datetime(dn_yr, dn_mon, dn_day, dn_hr, dn_min)
+    return time_out
+
+
+# ----------------------------------------------------
+#  ___      _               ___ _        _ _
+# / __| ___| |_ _  _ _ __  / __| |_ __ _| | |__
+# \__ \/ -_)  _| || | '_ \ \__ \  _/ _` | | / /
+# |___/\___|\__|\_,_| .__/ |___/\__\__,_|_|_\_\
+#                   |_|
+# ---------------------------------------------------
+def setup_stalk():
+    toml = tomlkit.load(item_file)
+    pass
+# ----------------------------------------------------
+#             _ _         _             _
+# __ __ ___ _(_) |_ ___  | |_ ___ _ __ | |
+# \ V  V / '_| |  _/ -_) |  _/ _ \ '  \| |
+#  \_/\_/|_| |_|\__\___|  \__\___/_|_|_|_|
+# ----------------------------------------------------
 def write_toml(itemid, start_price, end_time):
-    with tomlkit as tk:
-        store = tk.document(item_file)
-        store.add(tk.comment('Do not edit this file by hand'))
-        store.add(tk.comment('This file stores data collected '
-                             ' from scraping the item'))
-        store.add(tk.nl())
-        store.add("title", "GunBroker Sniper: Item Storage")
-        item = tk.table()
-        item.add("itemid", itemid)
-        item.add("Starting Price", start_price)
-        item.add("Ending Time", start_price)
-        store.add("item", item)
+    store = tomlkit.document(item_file)
+    store.add(tomlkit.comment('Do not edit this file by hand'))
+    store.add(tomlkit.comment('This file stores data collected '
+                              ' from scraping the item'))
+    store.add(tomlkit.nl())
+    store.add("title", "GunBroker Sniper: Item Storage")
+    item = tomlkit.table()
+    item.add("itemid", itemid)
+    item.add("Starting Price", start_price)
+    item.add("Ending Time", start_price)
+    store.add("item", item)
     return True
 
 
@@ -422,10 +363,10 @@ def write_toml(itemid, start_price, end_time):
 # | (_ | (_) || || (_) |  | |  | | | _|| |\/| |
 #  \___|\___/ |_| \___/  |___| |_| |___|_|  |_|
 # ----------------------------------------------
-def goto_item(itemid):
-    item_url = item_pattern + str(itemID)
+def goto_item(driver, itemid):
+    item_url = item_pattern + str(itemid)
     driver.get(item_url)
-    wait_between(a=min_ran, b=max_ran)
+    wait()
     c_url = driver.current_url
     if c_url == "https://www.gunbroker.com/Errors":
         print("Item no longer exists")
@@ -448,60 +389,78 @@ def goto_item(itemid):
     return True
 
 
-# --------------------------------------
-#    ___           ____     ___
-#   / _ |_______ _/  ____  / ____
-#  / __ / __/ _ `_/ // _ \/ _/ _ \
-# /_/ |_\__/\_, /___/_//_/_/ \___/
-#            /_/
-# --------------------------------------
-def info_acq():
-    goto_item()
-    min_bid = driver.find_element(By.ID, "StartingBid")
-    end_time = driver.find_element(By.ID, "EndingDate")
-
-
-# def cron_man():
-    # crono.on(end_time)
-
-
 # ----------------------------------------------------
-def browser_close():
+def browser_close(driver):
     # os.chdir("../")
     driver.close()
     # driver.quit()
 
 
-
+# -----------------------------------------------------------------
+#  __  __      _
+# |  \/  |__ _(_)_ _
+# | |\/| / _` | | ' \
+# |_|  |_\__,_|_|_||_|
+# -----------------------------------------------------------------
 def __main__():
-    art.tprint("GunBroker Sniper", font="rnd-medium")
+    art.tprint("GunBroker Sniper", font="rnd-small")
     conf_file = os.path.join(os.curdir, 'config.ini')
     # conf_path = os.path.realpath(conf_file)
+    prog = os.path.basename(__file__)
+
+    ##################
+    # ArgParse Setup #
+    ##################
+    p_arg = argparse.ArgumentParser(
+        prog=prog,
+        usage='%(prog)s.py  [--create|--stalk] and --config',
+        description='An auction sniper for gunbroker',
+        epilog='Dedicated to grandfathers who teach grandsons how to shoot.',
+        conflict_handler='resolve'
+        )
+    # Arguments for argparse
+    p_arg.add_argument('-f', '--config', help='path to configuration file')
+    p_arg.add_argument('-c', '--create', action='store_true',
+                       help='Setup the snipe')
+    p_arg.add_argument('-s', '--stalk', action='store_true',
+                       help='Stalk item to snipe')
+
+    ##################
+    # parse the args #
+    ##################
+    args = p_arg.parse_args()
+
+    #################
+    # config parser #
+    #################
     config = configparser.ConfigParser()
     config.read(conf_file)
+
+    #################
+    # get variables #
+    #################
     username = config['default']['username']
     password = config['default']['password']
     itemid = config['default']['itemid']
-    # spec = cfg.split("\n")
-    # if not os.path.isfile(conf_file):
-    #     config = ConfigObj(conf_file, configspec=spec)
-    #     config.filename = conf_file
-    #     validator = ConfigObj.validate
-    #     config.validate(validator, copy=True)
-    #     config.write()
-    #     print("Configuration file written to " + conf_path)
-    #     sys.exit()
-    # else:
-    #     config = ConfigObj(conf_file, configspec=spec)
-    driver_setup()
-    logged_in = login(username, password, itemid)
-    if logged_in:
-        got_item = goto_item(itemid)
+
+    ######
+    # go #
+    ######
+    if args.create:
+        driver = driver_setup()
+        logged_in = login(driver, username, password, itemid)
+        if logged_in:
+            got_item = goto_item(driver, itemid)
+        else:
+            print('Unable to log in')
+            sys.exit(0)
         if got_item:
             print('Hooray it worked!')
-    else:
-        print("Whoops!")
-    # browser_close()
+            browser_close(driver)
+        else:
+            print("Whoops!")
+    if args.stalk:
+        setup_stalk()
 
 
 # get things rolling
