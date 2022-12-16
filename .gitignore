@@ -8,6 +8,9 @@ config.ini
 .envrc
 *.venv
 vcs.xml
+item_store.toml
+.venv
+*.~undo-tree~
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

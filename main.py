@@ -36,7 +36,7 @@
 # ███████║██║ ╚████║██║██║     ███████╗██║  ██║
 # ╚══════╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝
 # ========================================================================================================================================
-
+import selenium
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -45,7 +45,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
-import crono
 from requests.exceptions import Timeout
 from retrying import retry
 from random import randint
@@ -56,21 +55,20 @@ import sys
 import re
 import configparser
 import argparse
-
-from configobj import ConfigObj
+from requests_html import HTMLSession
 import art
 import time
+from urllib.parse import urljoin
 from datetime import date, datetime
-import click
 import tomlkit
-import cfscrape
+
 
 sys.path.append(os.path.expanduser('~/.local/lib/python3.10'))
 # =======================================================
 # Variables
 # =======================================================
 item_pattern = 'https://www.gunbroker.com/item/'
-login_url = "https://www.gunbroker.com/user/login"
+login_url = "https://www.gunbroker.com/user/login?ReturnUrl=/"
 min_ran = int(15)
 max_ran = int(37)
 # LONG_min_ran = 4.78
@@ -104,7 +102,7 @@ item_file = os.path.join(os.curdir, 'item_store.toml')
 # -----------------------------------------------------
 # Create cloudflare scraper isinstance
 # -----------------------------------------------------
-scraper = cfscrape.create_scraper()
+# scraper = cfscrape.create_scraper()
 
 # For requests library
 # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}  # noqa: E501
@@ -177,7 +175,7 @@ def retry_requests_timeout(exception):
 # -------------------------------------------------
 def driver_setup():
     profile = webdriver.FirefoxProfile()
-    profile.add_extension("buster_captcha_solver-1.3.1.xpi")
+    profile.add_extension("buster_captcha_solver.xpi")
     opts = Options()
     opts.add_argument(
         '--user-agent=Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'  # noqa: E501
@@ -186,9 +184,9 @@ def driver_setup():
     opts.add_argument("--no-sandbox")
     opts.add_argument("--lang=en-US")
     opts.add_argument("--host-rules='MAP gunbroker.com 127.0.0.1:5000'")
-    opts.add_argument("--dns-prefetch-disable")
+    # opts.add_argument("--dns-prefetch-disable")
     opts.set_capability("javascript.enabled", True)
-    opts.set_preference("security.fileuri.strict_origin_policy", False)
+    # opts.set_preference("security.fileuri.strict_origin_policy", False)
     driver = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver")
     return driver
 
@@ -249,55 +247,55 @@ def do_captcha(driver):
     driver.switch_to.frame(iframes[0])
 
 
+# ----------------------------------------------------
+#  ___         _      ___      _   _
+# | _ \_  _ __| |_   | _ )_  _| |_| |_ ___ _ _
+# |  _/ || (_-< ' \  | _ \ || |  _|  _/ _ \ ' \
+# |_|  \_,_/__/_||_| |___/\_,_|\__|\__\___/_||_|
+# ----------------------------------------------------
+def push_login(driver):
+    login_btn = WebDriverWait(driver, 34).until(
+        EC.element_to_be_clickable((By.ID, "btnLogin")))
+    if login_btn and login_btn.is_displayed():
+        login_btn.click()
+        print("I clicked the Button, and it go boom!")
+        return True
+    return False
+
+
+# ----------------------------------
 #   __             _
 #  / /  ___  ___ _(_)__
 # / /__/ _ \/ _ `/ / _ \
 #/____/\___/\_, /_/_//_/
 #          /___/
-# ------------------------
-@retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
-@retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
-@retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+# ----------------------------------
+# @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
+# @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
+# @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 def login(driver, username, password, itemid):
     driver.get(login_url)
-    # wait()
     over_18 = WebDriverWait(driver, 30).until(
         EC.element_to_be_clickable((By.ID, "ltkpopup-thanks"))
-        )
+    )
     if over_18 and over_18.is_displayed():
         over_18.click()
-    cookie_message = WebDriverWait(driver, 34).until(
-        EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
-    )
-    time.sleep(5)
-    if cookie_message and cookie_message.is_displayed():
-        cookie_message.click()
+    username_input = WebDriverWait(driver, 30).until(
+        EC.visibility_of_element_located((By.ID, "Username")))
+    if username_input and username_input.is_displayed():
+        username_input.send_keys(username)
+    password_input = driver.find_element(By.ID, "Password")
+    if password_input and password_input.is_displayed():
+        password_input.send_keys(password)
+    logged_in = False
     try:
-        username_input = WebDriverWait(driver, 30).until(
-            EC.visibility_of_element_located((By.ID, "Username")))
-        if username_input and username_input.is_displayed():
-            username_input.send_keys(username)
-    except NoSuchElementException:
-        print("Login element not found")
-    try:
-        password_input = driver.find_element(By.ID, "Password")
-        if password_input and password_input.is_displayed():
-            password_input.send_keys(password)
-    except NoSuchElementException:
-        print("Password element not found")
-    checkmark = driver.find_element(
-        By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
-    if checkmark and checkmark.is_displayed():
-        try:
+        checkmark = driver.find_element(
+            By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
+        if checkmark and checkmark.is_displayed():
             do_captcha(driver)
-        except StaleElementReferenceException:
-            print("Caught Stale Captcha Element")
-    time.sleep(3)
-    login_btn = WebDriverWait(driver, 30).until(
-        EC.element_to_be_clickable((By.ID, "btnLogin")))
-    if login_btn and login_btn.is_visible():
-        time.sleep(3)
-        login_btn.click()
+    except NoSuchElementException:
+        logged_in = push_login(driver)
+    if logged_in:
         item_url = item_pattern + str(itemid)
         driver.get(item_url)
         return True
@@ -318,7 +316,8 @@ def get_date(end_time):
     dn_mon = dnum_list[0]
     dn_day = dnum_list[1]
     dn_hr = dnum_list[3]
-    dn_min = dnum_list[4]
+    raw_min = dnum_list[4]
+    dn_min = int(raw_min) - 15
     da_pm = re.findall(r'PM', end_time)
     if da_pm:
         dn_hr = int(dn_hr) + 12
@@ -334,8 +333,12 @@ def get_date(end_time):
 #                   |_|
 # ---------------------------------------------------
 def setup_stalk():
-    toml = tomlkit.load(item_file)
+    tomlo = tomlkit.load(item_file)
+    bid_end = tomlo["item"]["Ending Time"]
+    crono_time = get_date(bid_end)
     pass
+
+
 # ----------------------------------------------------
 #             _ _         _             _
 # __ __ ___ _(_) |_ ___  | |_ ___ _ __ | |
@@ -343,17 +346,20 @@ def setup_stalk():
 #  \_/\_/|_| |_|\__\___|  \__\___/_|_|_|_|
 # ----------------------------------------------------
 def write_toml(itemid, start_price, end_time):
-    store = tomlkit.document(item_file)
+    store = tomlkit.document()
     store.add(tomlkit.comment('Do not edit this file by hand'))
     store.add(tomlkit.comment('This file stores data collected '
-                              ' from scraping the item'))
+                              'from scraping the item'))
     store.add(tomlkit.nl())
-    store.add("title", "GunBroker Sniper: Item Storage")
+    store.add('Title', 'GunBroker Sniper: Item Storage')
     item = tomlkit.table()
-    item.add("itemid", itemid)
-    item.add("Starting Price", start_price)
-    item.add("Ending Time", start_price)
-    store.add("item", item)
+    item.add('itemid', itemid)
+    item.add('Starting_Price', start_price)
+    item.add('Ending_Time', end_time)
+    store['Item'] = item
+    write_toml = open(item_file, "w+", encoding="utf-8")
+    write_toml.write(store.as_string())
+    write_toml.close()
     return True
 
 
@@ -371,16 +377,33 @@ def goto_item(driver, itemid):
     if c_url == "https://www.gunbroker.com/Errors":
         print("Item no longer exists")
         sys.exit(0)
-    more_outta = '/html/body/div[11]/div/div/div/div/div[1]/a'
-    get_more = WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.xpath, more_outta))
-        )
-    if get_more and get_more.is_displayed():
-        get_more.click()
     bid_element = driver.find_element(By.ID, "StartingBid")
     start_price = bid_element.text()
     end_element = driver.find_element(By.ID, "EndingDate")
     end_time = end_element.text()
+    toml_write = write_toml(itemid, start_price, end_time)
+    if toml_write:
+        print("Successfully added item to store")
+    else:
+        print("Whoops!")
+    return True
+
+
+# ----------------------------------------------------------------
+#  ___                          ___       __
+# / __| __ _ _ __ _ _ __  ___  |_ _|_ _  / _|___
+# \__ \/ _| '_/ _` | '_ \/ -_)  | || ' \|  _/ _ \
+# |___/\__|_| \__,_| .__/\___| |___|_||_|_| \___/
+#                  |_|
+# ----------------------------------------------------------------
+def scrape_info(itemid):
+    session = HTMLSession()
+    item_url = urljoin(item_pattern, itemid)
+    i_page = session.get(item_url)
+    bid_element = i_page.html.find('#StartingBid', first=True)
+    start_price = bid_element.text
+    end_element = i_page.html.find('#EndingDate', first=True)
+    end_time = end_element.text
     toml_write = write_toml(itemid, start_price, end_time)
     if toml_write:
         print("Successfully added item to store")
@@ -415,7 +438,8 @@ def __main__():
         prog=prog,
         usage='%(prog)s.py  [--create|--stalk] and --config',
         description='An auction sniper for gunbroker',
-        epilog='Dedicated to grandfathers who teach grandsons how to shoot.',
+        epilog='Please support Armin Sabastien\'s captcha buster: '
+        ' https://github.com/dessant/buster',
         conflict_handler='resolve'
         )
     # Arguments for argparse
@@ -447,18 +471,14 @@ def __main__():
     # go #
     ######
     if args.create:
-        driver = driver_setup()
-        logged_in = login(driver, username, password, itemid)
-        if logged_in:
-            got_item = goto_item(driver, itemid)
-        else:
-            print('Unable to log in')
-            sys.exit(0)
-        if got_item:
-            print('Hooray it worked!')
-            browser_close(driver)
-        else:
-            print("Whoops!")
+        scrape_info(itemid)
+        # driver = driver_setup()
+        # got_item = goto_item(driver, itemid)
+        # if got_item:
+        #     print('Hooray it worked!')
+        #     browser_close(driver)
+        # else:
+        #     print("Whoops!")
     if args.stalk:
         setup_stalk()
 
