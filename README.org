@@ -1,0 +1,24 @@
+#+TITLE: Gun Broker README
+#+DATE: Thu Dec 22 07:57:51 2022
+#+PROJECT: Gun Broker
+#+CATEGORY: Scraper
+#+FILETAGS: README, INFO, DOC
+#+OPTIONS: H:3 num:nil toc:nil \n:nil ::t |:t ^:t -:t f:Tls *:T
+#+STARTUP: align nodlcheck nofold oddeven showall hidestars
+# ===================================================================
+#+begin_src text
+  ___             ___         _             ___      _
+ / __|_  _ _ _   | _ )_ _ ___| |_____ _ _  / __|_ _ (_)_ __  ___ _ _
+| (_ | || | ' \  | _ \ '_/ _ \ / / -_) '_| \__ \ ' \| | '_ \/ -_) '_|
+ \___|\_,_|_||_| |___/_| \___/_\_\___|_|   |___/_||_|_| .__/\___|_|
+                                                      |_|
+#+end_src
+* GunBroker Sniper
+*A sniper to automate bidding on gunbroker*
+** Preamble
+*** Original Intentions
+*** Bidding on GunBroker
+*** GunBroker's 15min Rule is for losers
+** Requirements
+** Usage
+** Troubleshooting
