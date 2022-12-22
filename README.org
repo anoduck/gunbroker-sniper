@@ -17,8 +17,26 @@
 *A sniper to automate bidding on gunbroker*
 ** Preamble
 *** Original Intentions
+Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for this is the
+obstacles present in the modern webframework prevent unwanted automation from occurring. Implementations of cloudflare and ReCaptcha
+have made the job of automation difficult to accomplish. As such, the original sniper was unsuited for the task.
 *** Bidding on GunBroker
+Just a few words of wisdom earned from experience with gunbroker.
+- GunBroker places the seller first, and you, the potential buyer, last.
+- Unlike eBay, which informs you of the amount of the highest bid, GunBroker leaves this to your imagination. You can and will be
+  outbid, without ever knowing it.
+- The seller's word does not have to be honored.
+- If for some reason, the seller refuses to sell the gun to you after placing the winning bid, gunbroker will not do anything about it.
 *** GunBroker's 15min Rule is for losers
+Although the intent of this rule is to circumvent any and all sniping, it does not mitigate the automation of the bidding process.
+[[https://support.gunbroker.com/hc/en-us/articles/221437107-15-Minute-Rule][Gunbroker 15min rule]]
 ** Requirements
+Through the miracle of technology and the determined efforts of developers, the requirements for this project are neatly prepared and
+mainained inside of the poetry develop environment. Please reference this project's `pyproject.toml` file for a complete lisitng of
+required dependencies.
 ** Usage
+Usage is fairly easy, or for at least us it seems that way.
+1. Setup the configuration file.
+2. Run the script.
 ** Troubleshooting
+One has found that prayer often helps. If not, fill out an issue on github, and we will see what we can do for you.
