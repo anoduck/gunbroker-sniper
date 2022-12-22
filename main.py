@@ -58,6 +58,7 @@ import argparse
 from requests_html import HTMLSession
 import art
 import time
+import sched
 from urllib.parse import urljoin
 from datetime import date, datetime
 import tomlkit
@@ -74,6 +75,7 @@ max_ran = int(37)
 # LONG_min_ran = 4.78
 # LONG_max_rand = 11.1
 item_file = os.path.join(os.curdir, 'item_store.toml')
+scheduler = sched.scheduler(time.time, time.sleep)
 # -------------------------------------------------------
 # cfg = """
 # [options]
@@ -144,27 +146,6 @@ def retry_requests_timeout(exception):
 # Begin
 # -----------------------------------------------------------------------------
 
-#    ___                      ____    __
-#   / _ \_______ __ ____ __  / __/__ / /___ _____
-#  / ___/ __/ _ \\ \ / // / _\ \/ -_) __/ // / _ \
-# /_/  /_/  \___/_\_\\_, / /___/\__/\__/\_,_/ .__/
-#                   /___/                  /_/
-# -------------------------------------------------
-# @retry(retry_on_exception=retry_requests_timeout, stop_max_attempt_number=5)
-# def proxy_setup():
-#     rp = RegisteredProviders()
-#     rp.parse_providers()
-#     PROXY = rp.get_random_proxy()
-#     opts = Options()
-#     my_proxy = {
-#         "proxyType": "MANUAL",
-#         "httpProxy": PROXY,
-#         "ftpProxy": PROXY,
-#         "sslProxy": PROXY
-#     }
-#     opts.set_capability(name='proxy', value=my_proxy)
-#     return PROXY
-
 
 # -------------------------------------------------
 #    ___      _                ____    __          
@@ -191,16 +172,6 @@ def driver_setup():
     return driver
 
 
-# __      __    _ _     ___     _
-# \ \    / /_ _(_) |_  | _ )___| |___ __ _____ ___ _ _
-#  \ \/\/ / _` | |  _| | _ Y -_)  _\ V  V / -_) -_) ' \
-#   \_/\_/\__,_|_|\__| |___|___|\__|\_/\_/\___\___|_||_|
-# ------------------------------------------------------
-def wait():
-    wait_time = randint(min_ran, max_ran)
-    sleep(wait_time)
-
-
 #  _____          __      __
 # / ___/__ ____  / /_____/ /  ___ _
 #/ /__/ _ `/ _ \/ __/ __/ _ \/ _ `/
@@ -214,32 +185,32 @@ def do_captcha(driver):
     iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
     driver.switch_to.frame(iframes[0])
     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
-    wait()
+    time.sleep(3)
     action = ActionChains(driver)
     # human_like_mouse_move(action, check_box)
     check_box.click()
-    wait()
+    time.sleep(3)
     action = ActionChains(driver)
     # human_like_mouse_move(action, check_box)
     # checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
     # challenge = driver.find_element(By.ID, "rc-imageselect")
     driver.switch_to.default_content()
     driver.switch_to.frame(iframes[2])
-    wait()
+    time.sleep(3)
     capt_btn = WebDriverWait(driver, 50).until(
         EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
     )
-    wait()
+    time.sleep(3)
     capt_btn.click()
-    wait()
+    time.sleep(3)
     try:
         alert_handler = WebDriverWait(driver, 20).until(
             EC.alert_is_present()
         )
         alert = driver.switch_to.alert
-        wait()
+        time.sleep(3)
         alert.accept()
-        wait()
+        time.sleep(3)
         do_captcha(driver)
     except NoSuchElementException:
         print("No Alert")
@@ -301,6 +272,32 @@ def login(driver, username, password, itemid):
         return True
 
 
+# ----------------------------------------------------------------
+#  ___ _    _
+# | _ |_)__| |
+# | _ \ / _` |
+# |___/_\__,_|
+# ----------------------------------------------------------------
+def do_snipe(username, password, itemid):
+    driver = driver_setup()
+    logged_in = login(driver, username, password, itemid)
+    if logged_in:
+		item_url = item_pattern + str(itemid)
+		driver.get(item_url)
+		time.sleep(3)
+		c_url = driver.current_url
+		if c_url == "https://www.gunbroker.com/Errors":
+			print("Item no longer exists")
+			sys.exit(0)
+		else:
+			current_bid = WebDriverWait(driver, 12).until(
+				EC.visibility_of_element_located((By.ID, "MaxBidAmount")))
+			
+
+def price_check(ckstart_price):
+	pass
+
+
 # -------------------------------------------
 #   ___     _     ___       _
 #  / __|___| |_  |   \ __ _| |_ ___
@@ -309,7 +306,7 @@ def login(driver, username, password, itemid):
 # --------------------------------------------
 # strformat = %m/%d/%Y %I:%M %p
 # --------------------------------------------
-def get_date(end_time):
+def get_end_date(end_time):
     date_num = re.findall(r'\d+', end_time)
     dnum_list = list(map(int, date_num))
     dn_yr = dnum_list[2]
@@ -325,18 +322,76 @@ def get_date(end_time):
     return time_out
 
 
+# ---------------------------------------------------------------
+#   ___ _           _     ___
+#  / __| |_  ___ __| |__ |_ _|_ _
+# | (__| ' \/ -_) _| / /  | || ' \
+#  \___|_||_\___\__|_\_\ |___|_||_|
+# Setup time for sniper to checkin to ensure specs and params
+# ---------------------------------------------------------------
+def get_checkin_date(end_time):
+	date_num = re.findall(r'\d+', end_time)
+	cki_list = list(map(int, date_num))
+	cki_yr = cki_list[2]
+    cki_mon = cki_list[0]
+    cki_day = cki_list[1]
+    cki_hr = cki_list[3]
+    raw_min = cki_list[4]
+    end_min = int(raw_min) - 15
+	cki_min = int(end_min) - 15
+    cki_pm = re.findall(r'PM', end_time)
+    if cki_pm:
+        cki_hr = int(cki_hr) + 12
+    check_in = datetime(cki_yr, cki_mon, cki_day, cki_hr, cki_min)
+
+
+def do_check(itemid, startprice, end_ttime, high_bid):
+	session = HTMLSession()
+    item_url = urljoin(item_pattern, itemid)
+    i_page = session.get(item_url)
+    ckbid_element = i_page.html.find('#StartingBid', first=True)
+    ckstart_price = ckbid_element.text
+    ckend_element = i_page.html.find('#EndingDate', first=True)
+    ckend_time = ckend_element.text
+	calc_end = get_end_date(ckend_time)
+	calc_check_time = time.mktime(calc_end.timetuple()) + calc_end.microsecond / 1E6
+	if calc_check_time == end_ttime:
+		if ckstart_price < high_bid:
+			return check_good
+		else:
+			print('Price rose above acceptable specification')
+			sys.exit(0)
+		
+	
+def ques_snipe(check_good, username, password, itemid):
+	if check_good:
+		do_snipe(username, password, itemid)
+
+
 # ----------------------------------------------------
 #  ___      _               ___ _        _ _
 # / __| ___| |_ _  _ _ __  / __| |_ __ _| | |__
 # \__ \/ -_)  _| || | '_ \ \__ \  _/ _` | | / /
 # |___/\___|\__|\_,_| .__/ |___/\__\__,_|_|_\_\
 #                   |_|
+# https://docs.python.org/3/library/sched.html
+# TODO: Check sched in jupyter
 # ---------------------------------------------------
-def setup_stalk():
-    tomlo = tomlkit.load(item_file)
-    bid_end = tomlo["item"]["Ending Time"]
-    crono_time = get_date(bid_end)
-    pass
+def setup_stalk(username, password, itemid, high_bid):
+	with open(item_file, 'r') as tmk:
+		tomlo = tomlkit.load(item_file)
+		end_time = tomlo[itemid]["Ending Time"]
+		start_price = tomlo[itemid]["Starting_Price"]
+		end_obid = get_end_date(end_time)
+		end_ttime = time.mktime(end_obid.timetuple()) + end_obid.microsecond / 1E6
+		check_in = get_checkin_date(end_time, start_price)
+		check_time = time.mktime(check_in.timetuple()) + check_in.microsecond / 1E6
+		check_good = scheduler.enterabs(check_time, 1,
+			                            action=do_check(itemid, startprice, end_ttime, high_bid))
+		sniped = scheduler.enterabs(end_ttime, 2,
+			                        action=quest_snipe(check_good, username, password, itemid))
+		if sniped:
+			print('Item sniped')
 
 
 # ----------------------------------------------------
@@ -352,40 +407,14 @@ def write_toml(itemid, start_price, end_time):
                               'from scraping the item'))
     store.add(tomlkit.nl())
     store.add('Title', 'GunBroker Sniper: Item Storage')
-    item = tomlkit.table()
-    item.add('itemid', itemid)
-    item.add('Starting_Price', start_price)
-    item.add('Ending_Time', end_time)
-    store['Item'] = item
+    itemid = tomlkit.table()
+    itemid.add('itemid', itemid)
+    itemid.add('Starting_Price', start_price)
+    itemid.add('Ending_Time', end_time)
+    store[itemid] = itemid
     write_toml = open(item_file, "w+", encoding="utf-8")
     write_toml.write(store.as_string())
     write_toml.close()
-    return True
-
-
-# ----------------------------------------------
-#   ___  ___ _____ ___    ___ _____ ___ __  __
-#  / __|/ _ \_   _/ _ \  |_ _|_   _| __|  \/  |
-# | (_ | (_) || || (_) |  | |  | | | _|| |\/| |
-#  \___|\___/ |_| \___/  |___| |_| |___|_|  |_|
-# ----------------------------------------------
-def goto_item(driver, itemid):
-    item_url = item_pattern + str(itemid)
-    driver.get(item_url)
-    wait()
-    c_url = driver.current_url
-    if c_url == "https://www.gunbroker.com/Errors":
-        print("Item no longer exists")
-        sys.exit(0)
-    bid_element = driver.find_element(By.ID, "StartingBid")
-    start_price = bid_element.text()
-    end_element = driver.find_element(By.ID, "EndingDate")
-    end_time = end_element.text()
-    toml_write = write_toml(itemid, start_price, end_time)
-    if toml_write:
-        print("Successfully added item to store")
-    else:
-        print("Whoops!")
     return True
 
 
@@ -466,21 +495,15 @@ def __main__():
     username = config['default']['username']
     password = config['default']['password']
     itemid = config['default']['itemid']
+	high_bid = config['default']['high_bid']		
 
     ######
     # go #
     ######
     if args.create:
         scrape_info(itemid)
-        # driver = driver_setup()
-        # got_item = goto_item(driver, itemid)
-        # if got_item:
-        #     print('Hooray it worked!')
-        #     browser_close(driver)
-        # else:
-        #     print("Whoops!")
     if args.stalk:
-        setup_stalk()
+        setup_stalk(username, password, itemid, high_bid)
 
 
 # get things rolling
