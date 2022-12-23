@@ -7,36 +7,65 @@
 #+STARTUP: align nodlcheck nofold oddeven showall hidestars
 # ===================================================================
 #+begin_src text
-  ___             ___         _             ___      _
- / __|_  _ _ _   | _ )_ _ ___| |_____ _ _  / __|_ _ (_)_ __  ___ _ _
-| (_ | || | ' \  | _ \ '_/ _ \ / / -_) '_| \__ \ ' \| | '_ \/ -_) '_|
- \___|\_,_|_||_| |___/_| \___/_\_\___|_|   |___/_||_|_| .__/\___|_|
-                                                      |_|
+# =======================================================================================================================================
+#   /$$$$$$                      /$$$$$$$                      /$$
+#  /$$__  $$                    | $$__  $$                    | $$
+# | $$  \__/ /$$   /$$ /$$$$$$$ | $$  \ $$  /$$$$$$   /$$$$$$ | $$   /$$  /$$$$$$   /$$$$$$
+# | $$ /$$$$| $$  | $$| $$__  $$| $$$$$$$  /$$__  $$ /$$__  $$| $$  /$$/ /$$__  $$ /$$__  $$
+# | $$|_  $$| $$  | $$| $$  \ $$| $$__  $$| $$  \__/| $$  \ $$| $$$$$$/ | $$$$$$$$| $$  \__/
+# | $$  \ $$| $$  | $$| $$  | $$| $$  \ $$| $$      | $$  | $$| $$_  $$ | $$_____/| $$
+# |  $$$$$$/|  $$$$$$/| $$  | $$| $$$$$$$/| $$      |  $$$$$$/| $$ \  $$|  $$$$$$$| $$
+#  \______/  \______/ |__/  |__/|_______/ |__/       \______/ |__/  \__/ \_______/|__/
+
+# ███████╗███╗   ██╗██╗██████╗ ███████╗██████╗
+# ██╔════╝████╗  ██║██║██╔══██╗██╔════╝██╔══██╗
+# ███████╗██╔██╗ ██║██║██████╔╝█████╗  ██████╔╝
+# ╚════██║██║╚██╗██║██║██╔═══╝ ██╔══╝  ██╔══██╗
+# ███████║██║ ╚████║██║██║     ███████╗██║  ██║
+# ╚══════╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝
+# ========================================================================================================================================
 #+end_src
 * GunBroker Sniper
 *A sniper to automate bidding on gunbroker*
 ** Preamble
-*** Original Intentions
-Originally intended to be based off of a sniper for EBay, this project has veered far from that course. The reason for this is the
-obstacles present in the modern webframework prevent unwanted automation from occurring. Implementations of cloudflare and ReCaptcha
-have made the job of automation difficult to accomplish. As such, the original sniper was unsuited for the task.
+*** Intentions
+**** Original Intent
+Originally intended to be based off of a sniper for EBay, this project has since broken continuity, and is now completely
+written from the ground up.
+**** Current conception
+Provide a means that will allow users to automate and monitor the bidding process on gunbroker, because we all have better things to do
+than to sit around and wait for the opportune time to arrive to click a button.  
 *** Bidding on GunBroker
-Just a few words of wisdom earned from experience with gunbroker.
-- GunBroker places the seller first, and you, the potential buyer, last.
-- Unlike eBay, which informs you of the amount of the highest bid, GunBroker leaves this to your imagination. You can and will be
-  outbid, without ever knowing it.
-- The seller's word does not have to be honored.
-- If for some reason, the seller refuses to sell the gun to you after placing the winning bid, gunbroker will not do anything about it.
-*** GunBroker's 15min Rule is for losers
-Although the intent of this rule is to circumvent any and all sniping, it does not mitigate the automation of the bidding process.
+A few words of caution concerning gunbroker:
+- "Auctions" are not always or necessarily cheaper than the "Buy Now" option.
+- The "Buy Now" options remains available throughout the auction, regardless of the bidding price or count.
+- If someone uses the "Buy Now" option to purchase the item, all bids are considered null/void and are discarded regardless of bid
+  amount or count.
+- If for some reason, the seller refuses to sell the item to you, gunbroker will not do anything about it.
+*** GunBroker's 15min Rule
+Although the intent of this rule is to circumvent any and all sniping, it does not mitigate the automation of the bidding process
+before 15min from the end time.
 [[https://support.gunbroker.com/hc/en-us/articles/221437107-15-Minute-Rule][Gunbroker 15min rule]]
 ** Requirements
 Through the miracle of technology and the determined efforts of developers, the requirements for this project are neatly prepared and
 mainained inside of the poetry develop environment. Please reference this project's `pyproject.toml` file for a complete lisitng of
 required dependencies.
+- Poetry
+- html_requests
+- chromedriver setup and ready to roll
+- selenium
+- furl
 ** Usage
-Usage is fairly easy, or for at least us it seems that way.
-1. Setup the configuration file.
-2. Run the script.
+Usage is fairly easy, or for at least us it seems that way. Usage of the project takes place in three primary stages.
+*** setup
+Discover the item id for the item you wish to bid on, and fill out all of the necessary variables in the configuration file. 
+*** Create
+Using the =-c= or =--create= flag, will crawl and acquire the basic information to perform the snipe, and is required before performing
+the snipe command.
+*** Snipe
+Using the =-s= or =--stalk= flag, will begin the sniping process. From which point, the stored data in the item file will be retrieved
+and a "check in" task will be scheduled. This "check in" task ensures the item is still available and the price has not exceeded the
+bid amount set in the configuration file. Once this all checks out, the actual snipe will be scheduled to take place. Before the 15min
+rule takes affect, the event will be triggered and your bid will be placed.
 ** Troubleshooting
 One has found that prayer often helps. If not, fill out an issue on github, and we will see what we can do for you.
