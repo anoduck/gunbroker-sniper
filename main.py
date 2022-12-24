@@ -112,13 +112,14 @@ scheduler = sched.scheduler(time.time, time.sleep)
 # -------------------------------------------
 # Setup retry
 # -------------------------------------------
-#  ____     ___  ______  ____   __ __ 
+#  ____     ___  ______  ____   __ __
 # |    \   /  _]|      ||    \ |  |  |
 # |  D  ) /  [_ |      ||  D  )|  |  |
 # |    / |    _]|_|  |_||    / |  ~  |
 # |    \ |   [_   |  |  |    \ |___, |
 # |  .  \|     |  |  |  |  .  \|     |
-# |__|\_||_____|  |__|  |__|\_||____/ 
+# |__|\_||_____|  |__|  |__|\_||____/
+
 
 def retry_on_timeout(exception):
     """ Return True if exception is Timeout """
@@ -149,11 +150,11 @@ def retry_requests_timeout(exception):
 
 
 # -------------------------------------------------
-#    ___      _                ____    __          
-#   / _ \____(_)  _____ ____  / __/__ / /___ _____ 
+#    ___      _                ____    __
+#   / _ \____(_)  _____ ____  / __/__ / /___ _____
 #  / // / __/ / |/ / -_) __/ _\ \/ -_) __/ // / _ \
 # /____/_/ /_/|___/\__/_/   /___/\__/\__/\_,_/ .__/
-#                                           /_/    
+#                                           /_/
 # -------------------------------------------------
 def driver_setup():
     profile = webdriver.FirefoxProfile()
@@ -173,50 +174,53 @@ def driver_setup():
     return driver
 
 
-#  _____          __      __
-# / ___/__ ____  / /_____/ /  ___ _
-#/ /__/ _ `/ _ \/ __/ __/ _ \/ _ `/
-#\___/\_,_/ .__/\__/\__/_//_/\_,_/
-#        /_/
+#   _____          __      __
+#  / ___/__ ____  / /_____/ /  ___ _
+# / /__/ _ `/ _ \/ __/ __/ _ \/ _ `/
+# \___/\_,_/ .__/\__/\__/_//_/\_,_/
+#         /_/
 # -----------------------------------
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
-@retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
-def do_captcha(driver):
-    driver.switch_to.default_content()
-    iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
-    driver.switch_to.frame(iframes[0])
-    check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor")))
-    time.sleep(3)
-    action = ActionChains(driver)
-    # human_like_mouse_move(action, check_box)
-    check_box.click()
-    time.sleep(3)
-    action = ActionChains(driver)
-    # human_like_mouse_move(action, check_box)
-    # checkmark = driver.find_element(By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
-    # challenge = driver.find_element(By.ID, "rc-imageselect")
-    driver.switch_to.default_content()
-    driver.switch_to.frame(iframes[2])
-    time.sleep(3)
-    capt_btn = WebDriverWait(driver, 50).until(
-        EC.element_to_be_clickable((By.XPATH, '//button[@id="solver-button"]'))
-    )
-    time.sleep(3)
-    capt_btn.click()
-    time.sleep(3)
-    try:
-        alert_handler = WebDriverWait(driver, 20).until(
-            EC.alert_is_present()
-        )
-        alert = driver.switch_to.alert
-        time.sleep(3)
-        alert.accept()
-        time.sleep(3)
-        do_captcha(driver)
-    except NoSuchElementException:
-        print("No Alert")
-    driver.implicitly_wait(5)
-    driver.switch_to.frame(iframes[0])
+# @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
+# def do_captcha(driver):
+#     driver.switch_to.default_content()
+#     iframes = driver.find_elements(by=By.TAG_NAME, value="iframe")
+#     driver.switch_to.frame(iframes[0])
+#     check_box = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
+#        (By.ID, "recaptcha-anchor")))
+#     time.sleep(3)
+#     action = ActionChains(driver)
+#     # human_like_mouse_move(action, check_box)
+#     check_box.click()
+#     time.sleep(3)
+#     action = ActionChains(driver)
+#     # human_like_mouse_move(action, check_box)
+#     # checkmark = driver.find_element(By.CSS_SELECTOR,
+#                                        ".recaptcha-checkbox-checkmark")
+#     # challenge = driver.find_element(By.ID, "rc-imageselect")
+#     driver.switch_to.default_content()
+#     driver.switch_to.frame(iframes[2])
+#     time.sleep(3)
+#     capt_btn = WebDriverWait(driver, 50).until(
+#         EC.element_to_be_clickable(
+#            (By.XPATH, '//button[@id="solver-button"]'))
+#     )
+#     time.sleep(3)
+#     capt_btn.click()
+#     time.sleep(3)
+#     try:
+#         alert_handler = WebDriverWait(driver, 20).until(
+#             EC.alert_is_present()
+#         )
+#         alert = driver.switch_to.alert
+#         time.sleep(3)
+#         alert.accept()
+#         time.sleep(3)
+#         do_captcha(driver)
+#     except NoSuchElementException:
+#         print("No Alert")
+#     driver.implicitly_wait(5)
+#     driver.switch_to.frame(iframes[0])
 
 
 # ----------------------------------------------------
@@ -236,11 +240,11 @@ def push_login(driver):
 
 
 # ----------------------------------
-#   __             _
-#  / /  ___  ___ _(_)__
-# / /__/ _ \/ _ `/ / _ \
-#/____/\___/\_, /_/_//_/
-#          /___/
+#    __             _
+#   / /  ___  ___ _(_)__
+#  / /__/ _ \/ _ `/ / _ \
+# /____/\___/\_, /_/_//_/
+#           /___/
 # ----------------------------------
 # @retry(retry_on_exception=retry_on_NoSuchElement, stop_max_attempt_number=3)
 # @retry(retry_on_exception=retry_on_timeout, stop_max_attempt_number=7)
@@ -264,7 +268,12 @@ def login(driver, username, password, itemid):
         checkmark = driver.find_element(
             By.CSS_SELECTOR, ".recaptcha-checkbox-checkmark")
         if checkmark and checkmark.is_displayed():
-            do_captcha(driver)
+            print('Please fill out an issue report on github and inform the '
+                  'maintainer that you have encountered a captcha. This will '
+                  'notify him to perform the necessary modifications to the '
+                  'script.')
+            sys.exit(0)
+            # do_captcha(driver)
     except NoSuchElementException:
         logged_in = push_login(driver)
     if logged_in:
@@ -283,36 +292,44 @@ def do_snipe(username, password, itemid, high_bid):
     driver = driver_setup()
     logged_in = login(driver, username, password, itemid)
     if logged_in:
-		item_url = item_pattern + str(itemid)
-		driver.get(item_url)
-		time.sleep(3)
-		c_url = driver.current_url
-		if c_url == "https://www.gunbroker.com/Errors":
-			print("Item no longer exists")
-			sys.exit(0)
-		bid_input = WebDriverWait(driver, 12).until(
-			EC.visibility_of_element_located((By.ID, "MaxBidAmount")))
-		if bid_input and bid_input.is_displayed():
-			bid_input.send_keys(high_bid)
-		bid_button = driver.find_element(By.ID, "bidButton")
-		bid_button.click()
-		page_title = driver.find_element(By.Class, "page-title")
-		confirm_page = page_title.text
-		if confirm_page == 'Confirm Bid':
-			confirm_button = driver.find_element(By.ID, "btnBid")
-			confirm_button.click()
-		else:
-			print('unable to find confirmation button')
-		success_div = driver.find_element(By.Class, "text-success")
-		success_msg = success_div.text
-		if success_msg == 'Successful':
-			return True
-		else:
-			print("Bid confirmation was unsuccessful")
-	else:
-		print("Logging in failed")
-		return False
+        item_url = item_pattern + str(itemid)
+        driver.get(item_url)
+        time.sleep(3)
+        c_url = driver.current_url
+        if c_url == "https://www.gunbroker.com/Errors":
+            print("Item no longer exists")
+            sys.exit(0)
+        bid_input = WebDriverWait(driver, 12).until(
+            EC.visibility_of_element_located((By.ID, "MaxBidAmount")))
+        if bid_input and bid_input.is_displayed():
+            bid_input.send_keys(high_bid)
+        bid_button = driver.find_element(By.ID, "bidButton")
+        bid_button.click()
+        page_title = driver.find_element(By.CLASS_NAME, "page-title")
+        confirm_page = page_title.text
+        if confirm_page == 'Confirm Bid':
+            confirm_button = driver.find_element(By.ID, "btnBid")
+            confirm_button.click()
+        else:
+            print('unable to find confirmation button')
+        success_div = driver.find_element(By.CLASS_NAME, "text-success")
+        success_msg = success_div.text
+        if success_msg == 'Successful':
+            return True
+        else:
+            print("Bid confirmation was unsuccessful")
+    else:
+        print("Logging in failed")
+        return False
 
+
+# ---------------------------------------------
+# Converty string to datetime(year, month, day)
+# ---------------------------------------------
+def convert_time(time_tc):
+    format = '%m/%d/%Y %I:%M %p'
+    cnv_time = datetime.strptime(time_tc, format)
+    return cnv_time
 
 # -------------------------------------------
 #   ___     _     ___       _
@@ -346,42 +363,46 @@ def get_end_date(end_time):
 # Setup time for sniper to checkin to ensure specs and params
 # ---------------------------------------------------------------
 def get_checkin_date(end_time):
-	date_num = re.findall(r'\d+', end_time)
-	cki_list = list(map(int, date_num))
-	cki_yr = cki_list[2]
+    date_num = re.findall(r'\d+', end_time)
+    cki_list = list(map(int, date_num))
+    cki_yr = cki_list[2]
     cki_mon = cki_list[0]
     cki_day = cki_list[1]
-    cki_hr = cki_list[3]
+    cki_hr_raw = cki_list[3]
     raw_min = cki_list[4]
     end_min = int(raw_min) - 15
-	cki_min = int(end_min) - 15
+    cki_min = int(end_min) - 15
     cki_pm = re.findall(r'PM', end_time)
     if cki_pm:
-        cki_hr = int(cki_hr) + 12
-    check_in = datetime(cki_yr, cki_mon, cki_day, cki_hr, cki_min)
+        cki_hr = int(cki_hr_raw) + 12
+    else:
+        cki_hr = cki_hr_raw
+    return datetime(cki_yr, cki_mon, cki_day, cki_hr, cki_min)
 
 
-def do_check(itemid, startprice, end_ttime, high_bid):
-	session = HTMLSession()
-    item_url = urljoin(item_pattern, itemid)
+def do_check(item, startprice, end_ttime, high_bid):
+    session = HTMLSession()
+    check_good = False
+    item_url = urljoin(item_pattern, item)
     i_page = session.get(item_url)
     ckbid_element = i_page.html.find('#StartingBid', first=True)
     ckstart_price = ckbid_element.text
     ckend_element = i_page.html.find('#EndingDate', first=True)
     ckend_time = ckend_element.text
-	calc_end = get_end_date(ckend_time)
-	calc_check_time = time.mktime(calc_end.timetuple()) + calc_end.microsecond / 1E6
-	if calc_check_time == end_ttime:
-		if ckstart_price < high_bid:
-			return check_good
-		else:
-			print('Price rose above acceptable specification')
-			sys.exit(0)
-		
-	
-def ques_snipe(check_good, username, password, itemid, high_bid):
-	if check_good:
-		do_snipe(username, password, itemid, high_bid)
+    calc_end = get_end_date(ckend_time)
+    calc_check_time = convert_time(calc_end)
+    if calc_check_time == end_ttime:
+        if ckstart_price < high_bid:
+            check_good = True
+            return check_good
+        else:
+            print('Price rose above acceptable specification')
+            sys.exit(0)
+
+
+def ques_snipe(check_good, username, password, item, high_bid):
+    if check_good:
+        do_snipe(username, password, item, high_bid)
 
 
 # ----------------------------------------------------
@@ -394,25 +415,27 @@ def ques_snipe(check_good, username, password, itemid, high_bid):
 # TODO: Check sched in jupyter
 # ---------------------------------------------------
 def setup_stalk(username, password, itemid, high_bid):
-	with open(item_file, 'r') as tmk:
-		tomlo = tomlkit.load(item_file)
-		end_time = tomlo[itemid]["Ending Time"]
-		buy_now = tomlo[itemid]["Buy_Now"]
-		start_price = tomlo[itemid]["Starting_Price"]
-		if high_bid >= buy_now:
-			print('Bid amount is equal or exceeds Buy Now price')
-			print('Please use "Buy Now" to purchase the item')
-			sys.exit(0)
-		end_obid = get_end_date(end_time)
-		end_ttime = time.mktime(end_obid.timetuple()) + end_obid.microsecond / 1E6
-		check_in = get_checkin_date(end_time)
-		check_time = time.mktime(check_in.timetuple()) + check_in.microsecond / 1E6
-		check_good = scheduler.enterabs(check_time, 1,
-			                            action=do_check(itemid, startprice, end_ttime, high_bid))
-		sniped = scheduler.enterabs(end_ttime, 2,
-			                        action=quest_snipe(check_good, username, password, itemid, high_bid))
-		if sniped:
-			print('Item sniped')
+    with open(item_file, 'r') as tmk:
+        tomlo = tomlkit.load(tmk)
+        item = str(itemid)
+        end_time = tomlo[item]["Ending_Time"]
+        buy_now = tomlo[item]["Buy_Now"]
+        startprice = tomlo[item]["Starting_Price"]
+        if high_bid >= buy_now:
+            print('Bid amount is equal or exceeds Buy Now price')
+            print('Please use "Buy Now" to purchase the item')
+            sys.exit(0)
+        end_obid = get_end_date(end_time)
+        end_ttime = convert_time(end_obid)
+        check_in = get_checkin_date(end_time)
+        check_time = convert_time(check_in)
+        check_good = scheduler.enterabs(check_time, 1,
+                                        action=do_check(item, startprice, end_ttime, high_bid))
+        sniped = scheduler.enterabs(end_ttime, 2,
+                                    action=ques_snipe(check_good, username, password, item, high_bid))
+        if sniped:
+            print('Item sniped')
+        tmk.close()
 
 
 # ----------------------------------------------------
@@ -428,12 +451,13 @@ def write_toml(itemid, buy_now, start_price, end_time):
                               'from scraping the item'))
     store.add(tomlkit.nl())
     store.add('Title', 'GunBroker Sniper: Item Storage')
-    itemid = tomlkit.table()
-    itemid.add('itemid', itemid)
-	itemid.add('Buy_Now', buy_now)
-    itemid.add('Starting_Price', start_price)
-    itemid.add('Ending_Time', end_time)
-    store[itemid] = itemid
+    item = tomlkit.table()
+    item.add('itemid', itemid)
+    item.add('Buy_Now', buy_now)
+    item.add('Starting_Price', start_price)
+    item.add('Ending_Time', end_time)
+    item.add('Status', 'Not Started')
+    store.add('item', item)
     write_toml = open(item_file, "w+", encoding="utf-8")
     write_toml.write(store.as_string())
     write_toml.close()
@@ -451,18 +475,18 @@ def scrape_info(itemid):
     session = HTMLSession()
     item_url = urljoin(item_pattern, itemid)
     i_page = session.get(item_url)
-	# buy_now = i_page.html.xpath('/html/body/div[1]/div[1]/div[5]/div[3]/div[1]/div[3]/div[2]/div[1]/div[2]')
-	if bn_element = i_page.html.find('div.item-info-wrapper:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2)'):
-		buy_now_raw = bn_element.tex
-		buy_now = buy_now_raw.replace('$', '')
-	else:
-		buy_now = '0'
+    bn_element = i_page.html.find('div.item-info-wrapper:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2)')
+    if bn_element:
+        buy_now_raw = bn_element.tex
+        buy_now = buy_now_raw.replace('$', '')
+    else:
+        buy_now = '0'
     bid_element = i_page.html.find('#StartingBid', first=True)
     start_price_raw = bid_element.text
     end_element = i_page.html.find('#EndingDate', first=True)
     end_time = end_element.text
-	start_price = start_price_raw.replace('$', '')
-    toml_write = write_toml(itemi, buy_now, start_price, end_time)
+    start_price = start_price_raw.replace('$', '')
+    toml_write = write_toml(itemid, buy_now, start_price, end_time)
     if toml_write:
         print("Successfully added item to store")
     else:
@@ -484,7 +508,8 @@ def browser_close(driver):
 # |_|  |_\__,_|_|_||_|
 # -----------------------------------------------------------------
 def __main__():
-    art.tprint("GunBroker Sniper", font="rnd-small")
+    art.tprint("GunBroker\nSniper", font="rnd-small")
+    # art.tprint("Sniper", font="rnd-medium")
     conf_file = os.path.join(os.curdir, 'config.ini')
     # conf_path = os.path.realpath(conf_file)
     prog = os.path.basename(__file__)
@@ -494,18 +519,19 @@ def __main__():
     ##################
     p_arg = argparse.ArgumentParser(
         prog=prog,
-        usage='%(prog)s.py  [--create|--stalk] and --config',
+        usage='%(prog)s.py  [ --create | --stalk ] and --config',
         description='An auction sniper for gunbroker',
         epilog='Please support Armin Sabastien\'s captcha buster: '
         ' https://github.com/dessant/buster',
         conflict_handler='resolve'
         )
     # Arguments for argparse
-    p_arg.add_argument('-f', '--config', help='path to configuration file')
+    p_arg.add_argument('-f', '--config', help='Path of configuration file',
+                       default='./config.ini')
     p_arg.add_argument('-c', '--create', action='store_true',
-                       help='Setup the snipe')
+                       help='Scrape required information from item.')
     p_arg.add_argument('-s', '--stalk', action='store_true',
-                       help='Stalk item to snipe')
+                       help='Setup the stalk and schedule the snipe.')
 
     ##################
     # parse the args #
@@ -524,7 +550,7 @@ def __main__():
     username = config['default']['username']
     password = config['default']['password']
     itemid = config['default']['itemid']
-	high_bid = config['default']['high_bid']
+    high_bid = config['default']['bidamount']
 
     ######
     # go #
