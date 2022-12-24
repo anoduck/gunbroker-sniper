@@ -1,4 +1,5 @@
 # Added custom ignore files
+Jupyterlab
 user.cfg
 poetry.lock
 References
