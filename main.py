@@ -46,7 +46,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
-from requests.exceptions import Timeout
+from requests.exceptions import Timeout, HTTPError, InvalidURL
 from retrying import retry
 from random import randint
 from random import uniform
@@ -59,7 +59,7 @@ import argparse
 from requests_html import HTMLSession
 import art
 import time
-import sched
+from scheduler import Scheduler
 from urllib.parse import urljoin
 from datetime import date, datetime
 import tomlkit
@@ -75,8 +75,12 @@ min_ran = int(15)
 max_ran = int(37)
 # LONG_min_ran = 4.78
 # LONG_max_rand = 11.1
+format = '%m/%d/%Y %I:%M %p'
 item_file = os.path.join(os.curdir, 'item_store.toml')
-scheduler = sched.scheduler(time.time, time.sleep)
+schedule = Scheduler()
+while True:
+    schedule.exec_jobs()
+    time.sleep(1)
 # -------------------------------------------------------
 # cfg = """
 # [options]
@@ -327,7 +331,6 @@ def do_snipe(username, password, itemid, high_bid):
 # Converty string to datetime(year, month, day)
 # ---------------------------------------------
 def convert_time(time_tc):
-    format = '%m/%d/%Y %I:%M %p'
     cnv_time = datetime.strptime(time_tc, format)
     return cnv_time
 
@@ -351,7 +354,7 @@ def get_end_date(end_time):
     da_pm = re.findall(r'PM', end_time)
     if da_pm:
         dn_hr = int(dn_hr) + 12
-    time_out = datetime(dn_yr, dn_mon, dn_day, dn_hr, dn_min)
+    time_out = datetime(dn_yr, dn_mon, dn_day, dn_hr, dn_min, 0)
     return time_out
 
 
@@ -372,37 +375,65 @@ def get_checkin_date(end_time):
     raw_min = cki_list[4]
     end_min = int(raw_min) - 15
     cki_min = int(end_min) - 15
+    cki_sec = 0
     cki_pm = re.findall(r'PM', end_time)
     if cki_pm:
         cki_hr = int(cki_hr_raw) + 12
     else:
         cki_hr = cki_hr_raw
-    return datetime(cki_yr, cki_mon, cki_day, cki_hr, cki_min)
+    return datetime(cki_yr, cki_mon, cki_day, cki_hr, cki_min, cki_sec)
+
+
+def log_checkin(ckstart_price, ckend_time, high_bid):
+    """
+    time = datetime.now Human Readable DONE
+    Current start price DONE
+    current end time DONE
+    result
+    countdown
+    """
+    status = True
+    log_path = os.path.join(os.path.curdir, 'snipe.log')
+    price_diff = high_bid - int(ckstart_price)
+    now = time.localtime(time.time())
+    cur_time = time.strftime(format, now)
+    cur_deadline = get_end_date(ckend_time)
+    time_str = 'Current Time: ' + cur_time
+    price_str = ' Difference in Price: ' + price_diff
+    deadline_str = ' Current deadline: ' + cur_deadline
+    if status:
+        stat_str = ' Status: ' + 'Success'
+    else:
+        stat_str = ' Status: ' + 'Failed'
+    log_string = time_str + price_str + deadline_str + stat_str
+    with open(log_path, 'a', encoding='utf-8') as wlf:
+        wlf.write(log_string)
+        wlf.write('\n')
+        wlf.close()
+    return True
 
 
 def do_check(item, startprice, end_ttime, high_bid):
     session = HTMLSession()
-    check_good = False
     item_url = urljoin(item_pattern, item)
-    i_page = session.get(item_url)
-    ckbid_element = i_page.html.find('#StartingBid', first=True)
-    ckstart_price = ckbid_element.text
-    ckend_element = i_page.html.find('#EndingDate', first=True)
-    ckend_time = ckend_element.text
-    calc_end = get_end_date(ckend_time)
-    calc_check_time = convert_time(calc_end)
-    if calc_check_time == end_ttime:
-        if ckstart_price < high_bid:
-            check_good = True
-            return check_good
-        else:
-            print('Price rose above acceptable specification')
+    try:
+        i_page = session.get(item_url)
+        ckbid_element = i_page.html.find('#StartingBid', first=True)
+        ckstart_price = ckbid_element.text
+        ckend_element = i_page.html.find('#EndingDate', first=True)
+        ckend_time = ckend_element.text
+    except AttributeError:
+        print('Page Request Failed')
+        sys.exit(0)
+    logged = log_checkin(ckstart_price, ckend_time, high_bid)
+    if logged:
+        calc_end = get_end_date(ckend_time)
+        calc_check_time = convert_time(calc_end)
+        if calc_check_time != end_ttime or ckstart_price > high_bid:
+            print('Either end time differentiates or '
+                  'Starting price is now less than your bid amount')
             sys.exit(0)
-
-
-def ques_snipe(check_good, username, password, item, high_bid):
-    if check_good:
-        do_snipe(username, password, item, high_bid)
+        return True
 
 
 # ----------------------------------------------------
@@ -411,16 +442,14 @@ def ques_snipe(check_good, username, password, item, high_bid):
 # \__ \/ -_)  _| || | '_ \ \__ \  _/ _` | | / /
 # |___/\___|\__|\_,_| .__/ |___/\__\__,_|_|_\_\
 #                   |_|
-# https://docs.python.org/3/library/sched.html
-# TODO: Check sched in jupyter
+# https://python-scheduler.readthedocs.io
 # ---------------------------------------------------
 def setup_stalk(username, password, itemid, high_bid):
-    with open(item_file, 'r') as tmk:
+    with open(item_file, 'r', encoding='utf-8') as tmk:
         tomlo = tomlkit.load(tmk)
-        item = str(itemid)
-        end_time = tomlo[item]["Ending_Time"]
-        buy_now = tomlo[item]["Buy_Now"]
-        startprice = tomlo[item]["Starting_Price"]
+        end_time = tomlo['item']["Ending_Time"]
+        buy_now = tomlo['item']["Buy_Now"]
+        startprice = tomlo['item']["Starting_Price"]
         if high_bid >= buy_now:
             print('Bid amount is equal or exceeds Buy Now price')
             print('Please use "Buy Now" to purchase the item')
@@ -428,14 +457,15 @@ def setup_stalk(username, password, itemid, high_bid):
         end_obid = get_end_date(end_time)
         end_ttime = convert_time(end_obid)
         check_in = get_checkin_date(end_time)
-        check_time = convert_time(check_in)
-        check_good = scheduler.enterabs(check_time, 1,
-                                        action=do_check(item, startprice, end_ttime, high_bid))
-        sniped = scheduler.enterabs(end_ttime, 2,
-                                    action=ques_snipe(check_good, username, password, item, high_bid))
-        if sniped:
-            print('Item sniped')
-        tmk.close()
+        # check_time = convert_time(check_in)
+        """ TODO transform check_in one time to hourly cycle """
+        schedule.once(check_in, do_check(itemid, startprice,
+                                         end_ttime, high_bid))
+        print('Item checks have been scheduled.')
+        schedule.once(end_obid, do_snipe(username, password,
+                                         itemid, high_bid))
+        print('Stalk has been scheduled.')
+        print(schedule)
 
 
 # ----------------------------------------------------
@@ -458,9 +488,9 @@ def write_toml(itemid, buy_now, start_price, end_time):
     item.add('Ending_Time', end_time)
     item.add('Status', 'Not Started')
     store.add('item', item)
-    write_toml = open(item_file, "w+", encoding="utf-8")
-    write_toml.write(store.as_string())
-    write_toml.close()
+    wti = open(item_file, "w+", encoding="utf-8")
+    wti.write(store.as_string())
+    wti.close()
     return True
 
 
