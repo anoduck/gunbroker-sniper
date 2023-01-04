@@ -27,6 +27,8 @@
 #+end_src
 * GunBroker Sniper
 *A sniper to automate bidding on gunbroker*
+** Looking for testing volunteers!
+Need testing volunteers whilst I am not in the market for purchasing a firearm!
 ** Preamble
 *** Intentions
 **** Original Intent
@@ -34,7 +36,7 @@ Originally intended to be based off of a sniper for EBay, this project has since
 written from the ground up.
 **** Current conception
 Provide a means that will allow users to automate and monitor the bidding process on gunbroker, because we all have better things to do
-than to sit around and wait for the opportune time to arrive to click a button.  
+than to sit around and wait for the opportune time to arrive so we can click a button.  
 *** Bidding on GunBroker
 A few words of caution concerning gunbroker:
 - "Auctions" are not always or necessarily cheaper than the "Buy Now" option.
@@ -46,26 +48,27 @@ A few words of caution concerning gunbroker:
 Although the intent of this rule is to circumvent any and all sniping, it does not mitigate the automation of the bidding process
 before 15min from the end time.
 [[https://support.gunbroker.com/hc/en-us/articles/221437107-15-Minute-Rule][Gunbroker 15min rule]]
-** Requirements
-Through the miracle of technology and the determined efforts of developers, the requirements for this project are neatly prepared and
-mainained inside of the poetry develop environment. Please reference this project's `pyproject.toml` file for a complete lisitng of
-required dependencies.
-- Poetry
-- html_requests
-- chromedriver setup and ready to roll
-- selenium
-- furl
 ** Usage
 Usage is fairly easy, or for at least us it seems that way. Usage of the project takes place in three primary stages.
 *** setup
-Discover the item id for the item you wish to bid on, and fill out all of the necessary variables in the configuration file. 
+1. Fill out your username and password in the configuration file without spaces. Ex. ~username=dude~ ~password=bigdude~
+2. Open the page of the item in your browser, and copy the numbers that follow =item/=. This is the item identification number, it is
+   required by the script. Copy that number into your configuration file in the =itemid= label. For example, if the url of the item page
+   is =https://www.gunbroker.com/item/123456789= then you will write ~itemid=123456789~ in your configuration file.
+3. Notice the current bidding price and decide how much you are willing to bid on the item. When ready write that amount in the label
+   ~bidamount=~. So, if you want to bid $200, then you would write ~bidamount=200~. Making sure to leave out any dollar sign or decimel.
 *** Create
-Using the =-c= or =--create= flag, will crawl and acquire the basic information to perform the snipe, and is required before performing
-the snipe command.
+Before you can actually use the program, you need to crawl the item url page to acquire the needed information for the snipe. This can
+be done using the =-c= or =--create= flag, and the required information will be stored in the =item_store.toml= file.
 *** Snipe
-Using the =-s= or =--stalk= flag, will begin the sniping process. From which point, the stored data in the item file will be retrieved
-and a "check in" task will be scheduled. This "check in" task ensures the item is still available and the price has not exceeded the
-bid amount set in the configuration file. Once this all checks out, the actual snipe will be scheduled to take place. Before the 15min
-rule takes affect, the event will be triggered and your bid will be placed.
+Using the =-s= or =--stalk= flag, will begin the sniping process. From which point, the stored data in =item_store.toml= file will be
+retrieved.
+**** The process goes a little like:
+1. First appropriate checkin times are calculated in order to check that the item is still available and the price is within range.
+2. When the time arrives, the checkin will be performed and parameters will be checked to ensure the process will complete the snipt
+   successfully.
+3. When the time draws near, approximately fifteen minutes before the end of the auction, the sniper will spring into action and
+   perform the desired bid, and confirm the bid for the user automatically.
+4. Unfortunately, all that is needed to do after this point... is pay...
 ** Troubleshooting
 One has found that prayer often helps. If not, fill out an issue on github, and we will see what we can do for you.
