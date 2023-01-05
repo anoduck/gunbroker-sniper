@@ -12,6 +12,8 @@ vcs.xml
 item_store.toml
 .venv
 *.~undo-tree~
+.virtual_documents
+.ipynb_checkpoints
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
