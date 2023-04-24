@@ -6,7 +6,7 @@ authors = ["anoduck <11767-anoduck@users.noreply.gitgud.io>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-argcomplete = "^2.0.0"
+argcomplete = "^3.0.8"
 requests = "^2.28.1"
 lxml = "^4.7.1"
 prompt-toolkit = "^3.0.30"
